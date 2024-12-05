@@ -106,12 +106,11 @@ void add_itemset_if_not_subsumed(ClosedItemsets *C, ITPair itpair) {
 void print_closed_itemsets(ClosedItemsets C, bool character) {
   printf("Closed itemsets found:\n");
   for (int i = 0; i < C.size; i++) {
-    printf(" ");
     for (int j = 0; j < C.itpairs[i].itemset.size; j++) {
       if (character) {
-        printf(" %c", C.itpairs[i].itemset.set[j]);
+        printf("%c ", C.itpairs[i].itemset.set[j]);
       } else {
-        printf(" %d", C.itpairs[i].itemset.set[j]);
+        printf("%d ", C.itpairs[i].itemset.set[j]);
       }
     }
     printf("\n");
@@ -134,15 +133,20 @@ int compare_sets(Set a, Set b) {
   return 1;
 }
 
+PrefixClass *allocate_itpair(ITPair itpair, PrefixClass *next) {
+  PrefixClass *new = malloc(sizeof(PrefixClass));
+  if (new == NULL) {
+    fprintf(stderr, "Failed to allocate memory for PrefixClass");
+    exit(1);
+  }
+  new->itpair = itpair;
+  new->next = next;
+  return new;
+}
+
 void add_itpair(PrefixClass **head, ITPair itpair) {
   if (*head == NULL) {
-    *head = malloc(sizeof(PrefixClass));
-    if (*head == NULL) {
-      fprintf(stderr, "Failed to allocate memory for PrefixClass");
-      exit(1);
-    }
-    (*head)->itpair = itpair;
-    (*head)->next = NULL;
+    *head = allocate_itpair(itpair, NULL);
     return;
   }
 
@@ -150,23 +154,21 @@ void add_itpair(PrefixClass **head, ITPair itpair) {
        prev = curr, curr = curr->next) {
     int cpr = compare_sets(curr->itpair.itemset, itpair.itemset);
     if (cpr < 0) {
+      if (curr->next == NULL) {
+        curr->next = allocate_itpair(itpair, NULL);
+        return;
+      }
       continue;
     } else if (cpr == 0) {
       curr->itpair.tidset = set_union(curr->itpair.tidset, itpair.tidset);
       return;
     } else {
-      PrefixClass *tmp = malloc(sizeof(PrefixClass));
-      if (tmp == NULL) {
-        fprintf(stderr, "Failed to allocate memory for PrefixClass");
-        exit(1);
-      }
-      tmp->itpair = itpair;
-      tmp->next = curr;
+      PrefixClass *tmp = allocate_itpair(itpair, curr);
 
       if (prev == NULL) {
         *head = tmp;
       } else {
-        prev = tmp;
+        prev->next = tmp;
       }
       return;
     }
@@ -232,23 +234,31 @@ void delete_PrefixClass(PrefixClass **head) {
   *head = NULL;
 }
 
-void charm_property(PrefixClass **P, PrefixClass **Pi, ITPair I, ITPair J,
+bool charm_property(PrefixClass **P, PrefixClass **Pi, ITPair I, ITPair J,
                     ITPair XY, int min_support) {
-  if (XY.tidset.size > min_support) {
+  if (XY.tidset.size >= min_support) {
     if (sets_equal(I.tidset, J.tidset)) {
       remove_itpair(P, J.itemset);
       replace_itemset(Pi, I.itemset, XY.itemset);
       replace_itemset(P, I.itemset, XY.itemset);
-    } else if (is_subset(I.tidset, J.tidset)) {
+      return true;
+    }
+    if (is_subset(I.tidset, J.tidset)) {
       replace_itemset(Pi, I.itemset, XY.itemset);
       replace_itemset(P, I.itemset, XY.itemset);
-    } else if (is_subset(J.tidset, I.tidset)) {
+      return false;
+    }
+    if (is_subset(J.tidset, I.tidset)) {
       remove_itpair(P, J.itemset);
       add_itpair(Pi, XY);
-    } else if (!sets_equal(I.tidset, J.tidset)) {
+      return true;
+    }
+    if (!sets_equal(I.tidset, J.tidset)) {
       add_itpair(Pi, XY);
+      return false;
     }
   }
+  return false;
 }
 
 void charm_extend(PrefixClass **P, ClosedItemsets *C, int min_support) {
@@ -256,11 +266,21 @@ void charm_extend(PrefixClass **P, ClosedItemsets *C, int min_support) {
     PrefixClass *Pi = NULL;
     Set X = i->itpair.itemset;
     ITPair XY = {0};
-    for (PrefixClass *j = i; j != NULL; j = j->next) {
-      X = set_union(X, j->itpair.itemset);
-      Set Y = set_intersect(i->itpair.tidset, j->itpair.tidset);
-      XY = (ITPair){X, Y};
-      charm_property(P, &Pi, i->itpair, j->itpair, XY, min_support);
+    for (PrefixClass *j = *P, *prev = NULL; j != NULL; prev = j, j = j->next) {
+      if (compare_sets(i->itpair.itemset, j->itpair.itemset) < 0) {
+        X = set_union(X, j->itpair.itemset);
+        Set Y = set_intersect(i->itpair.tidset, j->itpair.tidset);
+        XY = (ITPair){X, Y};
+        bool j_deleted =
+            charm_property(P, &Pi, i->itpair, j->itpair, XY, min_support);
+        if (j_deleted) {
+          if (prev == NULL) {
+            fprintf(stderr, "I didn't think this was possible");
+            exit(1);
+          }
+          j = prev;
+        }
+      }
     }
     if (Pi != NULL) {
       charm_extend(&Pi, C, min_support);
@@ -277,7 +297,7 @@ ClosedItemsets charm(Set *transactions, int num_transactions, int min_support) {
   for (int i = 0; i < num_transactions; i++) {
     for (int j = 0; j < transactions[i].size; j++) {
       Set itemset = {{transactions[i].set[j]}, 1};
-      Set tidset = {{i}, 1};
+      Set tidset = {{i + 1}, 1};
       ITPair pair = {itemset, tidset};
       add_itpair(&P, pair);
     }
