@@ -21,9 +21,9 @@ typedef struct {
 int compare(const void *a, const void *b) { return *(int *)a - *(int *)b; }
 
 void out_of_bounds(int i) {
-  if (i == ARRAY_SIZE) {
+  if (i >= ARRAY_SIZE) {
     fprintf(stderr, "Array out of bounds, exiting");
-    exit(1);
+    abort();
   }
 }
 
@@ -31,7 +31,7 @@ Set set_union(Set a, Set b) {
   Set uni = {0};
   int i, j;
   i = j = 0;
-  while (i < a.size || j < b.size) {
+  while (i < a.size && j < b.size) {
     out_of_bounds(uni.size);
     if (a.set[i] < b.set[j]) {
       uni.set[uni.size] = a.set[i];
@@ -64,7 +64,7 @@ Set set_intersect(Set a, Set b) {
   Set inter = {0};
   int i, j;
   i = j = 0;
-  while (i < a.size || j < b.size) {
+  while (i < a.size && j < b.size) {
     if (a.set[i] < b.set[j]) {
       i++;
     } else if (a.set[i] > b.set[j]) {
@@ -83,7 +83,7 @@ Set set_intersect(Set a, Set b) {
 bool is_subset(Set sub, Set sup) {
   int i, j;
   i = j = 0;
-  while (i < sub.size || j < sup.size) {
+  while (i < sub.size && j < sup.size) {
     if (sub.set[i] < sup.set[j]) {
       return false;
     } else if (sub.set[i] > sup.set[j]) {
