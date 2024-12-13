@@ -130,19 +130,19 @@ bool sets_equal(Set a, Set b) {
 }
 
 int compare_sets(Set a, Set b) {
-  int i, j;
-  i = j = 0;
-  while (i < a.size && j < b.size) {
-    if (a.set[i] < b.set[j]) {
+  int i = 0;
+  while (i < a.size && i < b.size) {
+    if (a.set[i] < b.set[i]) {
       return -1;
-    } else if (a.set[i] > b.set[j]) {
+    } else if (a.set[i] > b.set[i]) {
       return 1;
     }
+    i++;
   }
   if (i < a.size) {
     return -1;
   }
-  if (j < b.size) {
+  if (i < b.size) {
     return 1;
   }
   return 0;
