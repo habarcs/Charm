@@ -53,3 +53,5 @@ dkms.conf
 
 # ignore files in out
 out/
+
+.vscode/
