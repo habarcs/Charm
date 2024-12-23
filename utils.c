@@ -116,6 +116,7 @@ int compare_itpairs_alphabetic(const void *a, const void *b) {
   return compare_sets(((ITPair *)a)->itemset, ((ITPair *)b)->itemset);
 }
 
+/* ASCENDING */ 
 int compare_itpairs_by_support(const void *a, const void *b) {
   Set tidA = ((ITPair *)a)->tidset;
   Set tidB = ((ITPair *)b)->tidset;
@@ -129,9 +130,13 @@ int compare_itpairs_by_support(const void *a, const void *b) {
 
 void add_itemset_if_not_subsumed(ITArray *C, ITPair itpair) {
   for (int i = 0; i < C->size; i++) {
-    if (C->itpairs[i].tidset.size == itpair.tidset.size &&
-        is_subset(itpair.itemset, C->itpairs[i].itemset)) {
-      return;
+    if (C->itpairs[i].tidset.size == itpair.tidset.size) {
+      if (is_subset(C->itpairs[i].itemset, itpair.itemset)) {
+        C->itpairs[i] = itpair;
+        return;
+      } else if (is_subset(itpair.itemset, C->itpairs[i].itemset)) {
+        return;
+      }
     }
   }
   C->itpairs[C->size++] = itpair;
@@ -158,13 +163,14 @@ void replace_with(ITArray *P, Set it, Set with) {
 void print_closed_itemsets(ITArray C, bool character) {
   printf("Closed itemsets found:\n");
   for (int i = 0; i < C.size; i++) {
+    printf("{");
     for (int j = 0; j < C.itpairs[i].itemset.size; j++) {
       if (character) {
-        printf("%c ", C.itpairs[i].itemset.set[j]);
+        printf(" %c ", C.itpairs[i].itemset.set[j]);
       } else {
-        printf("%d ", C.itpairs[i].itemset.set[j]);
+        printf(" %d ", C.itpairs[i].itemset.set[j]);
       }
     }
-    printf("\n");
+    printf("} with support %d\n", C.itpairs[i].tidset.size);
   }
 }

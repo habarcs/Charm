@@ -4,6 +4,7 @@
 
 /******************** CONSTANTS ********************/
 #define ARRAY_SIZE 100
+#define MIN_SUPPORT 3
 
 /******************** STRUCTS ********************/
 typedef struct {

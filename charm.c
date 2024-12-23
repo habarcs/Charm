@@ -1,48 +1,50 @@
 #include <charm.h>
 
-void charm_extend(ITArray *P, ITArray *C, int min_support) {
+void charm_extend(ITArray *P, ITArray *C) {
   for (int i = 0; i < P->size; i++) {
     ITArray Pi = {0};
     Set Xi = P->itpairs[i].itemset;
     Set tXi = P->itpairs[i].tidset;
+    Set X = Xi;
+    Set Y = tXi;
     for (int j = i + 1; j < P->size; j++) {
-      Set Xj = set_union(Xi, P->itpairs[j].itemset);
-      Set tXj = set_intersect(tXi, P->itpairs[j].tidset);
+      Set Xj = P->itpairs[j].itemset;
+      Set tXj = P->itpairs[j].tidset;
+      X = set_union(Xi, Xj);
+      Y = set_intersect(tXi, tXj);
       // charm_property(P, &Pi, X, Y);
-      if (tXj.size >= min_support) {
-        if (sets_equal(tXi, P->itpairs[j].tidset)) {
+      if (Y.size >= MIN_SUPPORT) {
+        if (sets_equal(tXi, tXj)) {
           remove_itpair(P, j);
           j--;
-          replace_with(P, Xi, Xj);
-          replace_with(&Pi, Xi, Xj);
-        } else if (is_subset(tXi, P->itpairs[j].tidset)) {
-          replace_with(P, Xi, Xj);
-          replace_with(&Pi, Xi, Xj);
-        } else if (is_subset(P->itpairs[j].tidset, tXi)) {
+          replace_with(P, Xi, X);
+          replace_with(&Pi, Xi, X);
+        } else if (is_subset(tXi, tXj)) {
+          replace_with(P, Xi, X);
+          replace_with(&Pi, Xi, X);
+        } else if (is_subset(tXj, tXi)) {
           remove_itpair(P, j);
           j--;
-          Pi.itpairs[Pi.size++] = (ITPair){Xj, tXj};
-          qsort(&Pi.itpairs, Pi.size, sizeof(ITPair), compare_itpairs_alphabetic);
-        } else if (!sets_equal(tXi, P->itpairs[j].tidset)) {
-          Pi.itpairs[Pi.size++] = (ITPair){Xj, tXj};
-          qsort(&Pi.itpairs, Pi.size, sizeof(ITPair), compare_itpairs_alphabetic);
+          Pi.itpairs[Pi.size++] = (ITPair){X, Y};
+          qsort(&Pi.itpairs, Pi.size, sizeof(ITPair), compare_itpairs_by_support);
+        } else if (!sets_equal(tXi, tXj)) {
+          Pi.itpairs[Pi.size++] = (ITPair){X, Y};
+          qsort(&Pi.itpairs, Pi.size, sizeof(ITPair), compare_itpairs_by_support);
         }
       }
     }
     if (Pi.size > 0) {
-      printf("Not finished yet, running again\n");
-      charm_extend(&Pi, C, min_support);
+      charm_extend(&Pi, C);
     }
-    add_itemset_if_not_subsumed(C, (ITPair){Xi, tXi});
+    add_itemset_if_not_subsumed(C, (ITPair){X, Y});
   }
 }
 
-ITArray charm(Set *transactions, int num_transactions, int min_support) {
+ITArray charm(Set *transactions, int num_transactions) {
   ITArray C = {0};
   ITArray P = {0};
 
   for (int i = 0; i < num_transactions; i++) {
-    printf("Iteranting through transaction number: %d\n", i);
     for (int j = 0; j < transactions[i].size; j++) {
       Set item = {{transactions[i].set[j]}, 1};
       Set tid = {{i + 1}, 1};
@@ -60,15 +62,14 @@ ITArray charm(Set *transactions, int num_transactions, int min_support) {
     }
   }
   for (int i = 0; i < P.size; i++) {
-    if (P.itpairs[i].tidset.size < min_support) {
-      printf("Removing a tidset that is less than the min support");
+    if (P.itpairs[i].tidset.size < MIN_SUPPORT) {
       remove_itpair(&P, i);
       i--;
     }
   }
-  qsort(&P.itpairs, P.size, sizeof(ITPair), compare_itpairs_alphabetic);
+  qsort(&P.itpairs, P.size, sizeof(ITPair), compare_itpairs_by_support);
 
-  charm_extend(&P, &C, min_support);
+  charm_extend(&P, &C);
   return C;
 }
 
@@ -77,6 +78,6 @@ int main() {
       {{'a', 'c', 't', 'w'}, 4},      {{'c', 'd', 'w'}, 3},
       {{'a', 'c', 't', 'w'}, 4},      {{'a', 'c', 'd', 'w'}, 4},
       {{'a', 'c', 'd', 't', 'w'}, 5}, {{'c', 'd', 't'}, 3}};
-  ITArray C = charm(transactions, 6, 3);
+  ITArray C = charm(transactions, 6);
   print_closed_itemsets(C, true);
 }
