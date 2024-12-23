@@ -1,11 +1,4 @@
-#include <stdbool.h>
-#include <stdlib.h>
-#include <utils.h>
 #include <charm.h>
-
-void charm_property(ITArray *P, ITArray *Pi, Set X, Set Y) {
-
-}
 
 void charm_extend(ITArray *P, ITArray *C, int min_support) {
   for (int i = 0; i < P->size; i++) {
@@ -29,10 +22,10 @@ void charm_extend(ITArray *P, ITArray *C, int min_support) {
           remove_itpair(P, j);
           j--;
           Pi.itpairs[Pi.size++] = (ITPair){Xj, tXj};
-          qsort(&Pi.itpairs, Pi.size, sizeof(ITPair), compare_itpairs);
+          qsort(&Pi.itpairs, Pi.size, sizeof(ITPair), compare_itpairs_alphabetic);
         } else if (!sets_equal(tXi, P->itpairs[j].tidset)) {
           Pi.itpairs[Pi.size++] = (ITPair){Xj, tXj};
-          qsort(&Pi.itpairs, Pi.size, sizeof(ITPair), compare_itpairs);
+          qsort(&Pi.itpairs, Pi.size, sizeof(ITPair), compare_itpairs_alphabetic);
         }
       }
     }
@@ -73,7 +66,7 @@ ITArray charm(Set *transactions, int num_transactions, int min_support) {
       i--;
     }
   }
-  qsort(&P.itpairs, P.size, sizeof(ITPair), compare_itpairs);
+  qsort(&P.itpairs, P.size, sizeof(ITPair), compare_itpairs_alphabetic);
 
   charm_extend(&P, &C, min_support);
   return C;

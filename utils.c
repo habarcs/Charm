@@ -112,8 +112,19 @@ int compare_sets(Set a, Set b) {
   return 0;
 }
 
-int compare_itpairs(const void *a, const void *b) {
+int compare_itpairs_alphabetic(const void *a, const void *b) {
   return compare_sets(((ITPair *)a)->itemset, ((ITPair *)b)->itemset);
+}
+
+int compare_itpairs_by_support(const void *a, const void *b) {
+  Set tidA = ((ITPair *)a)->tidset;
+  Set tidB = ((ITPair *)b)->tidset;
+  if (tidA.size < tidB.size) {
+    return -1;
+  } else if (tidA.size > tidB.size) {
+    return 1;
+  }
+  return 0;
 }
 
 void add_itemset_if_not_subsumed(ITArray *C, ITPair itpair) {

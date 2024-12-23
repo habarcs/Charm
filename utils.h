@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 /******************** CONSTANTS ********************/
 #define ARRAY_SIZE 100
@@ -29,7 +30,8 @@ Set set_intersect(Set a, Set b);
 bool is_subset(Set sub, Set sup);
 bool sets_equal(Set a, Set b);
 int compare_sets(Set a, Set b);
-int compare_itpairs(const void *a, const void *b);
+int compare_itpairs_alphabetic(const void *a, const void *b);
+int compare_itpairs_by_support(const void *a, const void *b);
 void add_itemset_if_not_subsumed(ITArray *C, ITPair itpair);
 void remove_itpair(ITArray *P, int pos);
 void replace_with(ITArray *P, Set it, Set with);
