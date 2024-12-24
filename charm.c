@@ -1,11 +1,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
-#include <utils.h>
-#include <charm.h>
-
-void charm_property(ITArray *P, ITArray *Pi, Set X, Set Y) {
-
-}
+#include <stdio.h>
+#include "utils.h"
+#include "charm.h"
 
 void charm_extend(ITArray *P, ITArray *C, int min_support) {
   for (int i = 0; i < P->size; i++) {

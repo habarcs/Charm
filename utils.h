@@ -1,8 +1,8 @@
+#pragma once
 #include <stdbool.h>
-#include <stdio.h>
 
 /******************** CONSTANTS ********************/
-#define ARRAY_SIZE 100
+#define ARRAY_SIZE 10
 
 /******************** STRUCTS ********************/
 typedef struct {
