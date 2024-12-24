@@ -149,6 +149,7 @@ void replace_with(ITArray *P, Set it, Set with) {
 void print_closed_itemsets(ITArray C, bool character) {
   printf("Closed itemsets found:\n");
   for (int i = 0; i < C.size; i++) {
+    printf("itemset: ");
     for (int j = 0; j < C.itpairs[i].itemset.size; j++) {
       if (character) {
         printf("%c ", C.itpairs[i].itemset.set[j]);
@@ -156,7 +157,7 @@ void print_closed_itemsets(ITArray C, bool character) {
         printf("%d ", C.itpairs[i].itemset.set[j]);
       }
     }
-    printf("tids: ");
+    printf("\t| tids: ");
     for (int j = 0; j < C.itpairs[i].tidset.size; j++) {
       printf("%d ", C.itpairs[i].tidset.set[j]);
     }
