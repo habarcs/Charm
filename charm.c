@@ -1,37 +1,40 @@
-#include <stdbool.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include "utils.h"
 #include "charm.h"
+#include "utils.h"
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 void charm_extend(ITArray *P, ITArray *C, int min_support) {
   for (int i = 0; i < P->size; i++) {
     ITArray Pi = {0};
     Set Xi = P->itpairs[i].itemset;
     Set tXi = P->itpairs[i].tidset;
-    for (int j = i + 1; j < P->size; j++) {
-      Set Xj = set_union(Xi, P->itpairs[j].itemset);
-      Set tXj = set_intersect(tXi, P->itpairs[j].tidset);
 
-      if (tXj.size >= min_support) {
-        if (sets_equal(tXi, P->itpairs[j].tidset)) {
+    for (int j = i + 1; j < P->size; j++) {
+      const Set Xj = P->itpairs[j].itemset;
+      const Set tXj = P->itpairs[j].tidset;
+      Set Xij = set_union(Xi, Xj);
+      Set tXij = set_intersect(tXi, tXj);
+
+      if (tXij.size >= min_support) {
+        if (sets_equal(tXi, tXj)) {
+          replace_with(P, Xi, Xij);
+          replace_with(&Pi, Xi, Xij);
+          Xi = Xij;
+          tXi = tXij;
           remove_itpair(P, j);
           j--;
-          replace_with(P, Xi, Xj);
-          replace_with(&Pi, Xi, Xj);
-        } else if (is_subset(tXi, P->itpairs[j].tidset)) {
-          replace_with(P, Xi, Xj);
-          replace_with(&Pi, Xi, Xj);
-        } else if (is_subset(P->itpairs[j].tidset, tXi)) {
-          remove_itpair(P, j);
-          j--;
-          out_of_bounds(Pi.size);
-          Pi.itpairs[Pi.size++] = (ITPair){Xj, tXj};
-          qsort(&Pi.itpairs, Pi.size, sizeof(ITPair), compare_itpairs);
-        } else if (!sets_equal(tXi, P->itpairs[j].tidset)) {
-          out_of_bounds(Pi.size);
-          Pi.itpairs[Pi.size++] = (ITPair){Xj, tXj};
-          qsort(&Pi.itpairs, Pi.size, sizeof(ITPair), compare_itpairs);
+        } else {
+          if (is_subset(tXi, tXj)) {
+            replace_with(P, Xi, Xij);
+            replace_with(&Pi, Xi, Xij);
+            Xi = Xij;
+            tXi = tXij;
+          } else {
+            out_of_bounds(Pi.size);
+            Pi.itpairs[Pi.size++] = (ITPair){Xij, tXij};
+            qsort(&Pi.itpairs, Pi.size, sizeof(ITPair), compare_itpairs);
+          }
         }
       }
     }
