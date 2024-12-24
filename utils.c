@@ -44,7 +44,6 @@ Set set_union(Set a, Set b) {
 }
 
 Set set_intersect(Set a, Set b) {
-  // maybe can be done better
   Set inter = {0};
   int i, j;
   i = j = 0;
@@ -125,6 +124,7 @@ void add_itemset_if_not_subsumed(ITArray *C, ITPair itpair) {
       return;
     }
   }
+  out_of_bounds(C->size);
   C->itpairs[C->size++] = itpair;
 }
 
@@ -155,6 +155,10 @@ void print_closed_itemsets(ITArray C, bool character) {
       } else {
         printf("%d ", C.itpairs[i].itemset.set[j]);
       }
+    }
+    printf("tids: ");
+    for (int j = 0; j < C.itpairs[i].tidset.size; j++) {
+      printf("%d ", C.itpairs[i].tidset.set[j]);
     }
     printf("\n");
   }

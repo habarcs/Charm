@@ -2,7 +2,7 @@
 #include <stdbool.h>
 
 /******************** CONSTANTS ********************/
-#define ARRAY_SIZE 10
+#define ARRAY_SIZE 20
 
 /******************** STRUCTS ********************/
 typedef struct {
