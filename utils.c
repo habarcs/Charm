@@ -1,12 +1,13 @@
 #include "utils.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 int compare(const void *a, const void *b) { return *(int *)a - *(int *)b; }
 
 void out_of_bounds(int i) {
   if (i >= ARRAY_SIZE) {
-    fprintf(stderr, "Array out of bounds, exiting");
+    fprintf(stderr, "Array out of bounds, exiting\n");
     abort();
   }
 }
@@ -146,13 +147,14 @@ void replace_with(ITArray *P, Set it, Set with) {
   }
 }
 
+// we can convert back to char the items
 void print_closed_itemsets(ITArray C, bool character) {
   printf("Closed itemsets found:\n");
   for (int i = 0; i < C.size; i++) {
     printf("itemset: ");
     for (int j = 0; j < C.itpairs[i].itemset.size; j++) {
       if (character) {
-        printf("%c ", C.itpairs[i].itemset.set[j]);
+        printf("%c ", index_to_char(C.itpairs[i].itemset.set[j]));
       } else {
         printf("%d ", C.itpairs[i].itemset.set[j]);
       }
@@ -163,4 +165,87 @@ void print_closed_itemsets(ITArray C, bool character) {
     }
     printf("\n");
   }
+}
+
+int char_to_index(char c) {
+  return c - 'a';
+}
+
+char index_to_char(int i) {
+  return i + 'a';
+}
+
+int count_lines_in_file(const char *filename) {
+  FILE *file = fopen(filename, "r");
+  if (!file) {
+    perror("Failed to open file");
+    exit(EXIT_FAILURE);
+  }
+
+  int lines = 0;
+  char buffer[MAX_LINE_LENGTH];
+
+  while (fgets(buffer, sizeof(buffer), file)) {
+    lines++;
+  }
+
+  fclose(file);
+  return lines;
+}
+
+Set *read_sets_from_file(const char *filename, int *num_transactions, bool characters) {
+  *num_transactions = count_lines_in_file(filename);
+  printf("Number of transactions in the dataset: %d\n", *num_transactions);
+  if (*num_transactions > MAX_TRANSACTIONS) {
+    printf("Max number of transactions exceeded\n");
+    *num_transactions = MAX_TRANSACTIONS;
+  }
+
+  Set *transactions = malloc(*num_transactions * sizeof(Set));
+  if (!transactions) {
+    perror("Failed to allocate memory for transactions");
+    exit(EXIT_FAILURE);
+  }
+
+  FILE *file = fopen(filename, "r");
+  if (!file) {
+    perror("Failed to open file");
+    free(transactions);
+    exit(EXIT_FAILURE);
+  }
+
+  char line[MAX_LINE_LENGTH];
+  int index = 0;
+
+  while (fgets(line, sizeof(line), file) && index < *num_transactions) {
+    size_t len = strlen(line);
+    if (len > 0 && line[len - 1] == '\n') {
+      line[len - 1] = '\0';
+    }
+
+    Set *current_set = &transactions[index];
+    current_set->size = 0;
+
+    char *token = strtok(line, " ");
+    while (token && *token != '\n') {
+      if (strlen(token) == 1) {
+        int elem = -1;
+        if (characters && token[0] >= 'a' && token[0] <= 'z') {
+          // to save memory, we can convert the char in an int
+          elem = char_to_index(token[0]);
+        } else if (!characters) {
+          elem = token[0];
+        } else {
+          printf("Item was not a char neither an int. It will not be added to the set");
+        }
+        current_set->set[current_set->size++] = elem;
+      }
+      token = strtok(NULL, " ");
+    }
+
+    index++;
+  }
+
+  fclose(file);
+  return transactions;
 }
