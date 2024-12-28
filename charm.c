@@ -39,7 +39,6 @@ void charm_extend(ITArray *P, ITArray *C, int min_support) {
       }
     }
     if (Pi.size > 0) {
-      printf("Not finished yet, running again\n");
       charm_extend(&Pi, C, min_support);
     }
     add_itemset_if_not_subsumed(C, (ITPair){Xi, tXi});
@@ -51,7 +50,6 @@ ITArray charm(Set *transactions, int num_transactions, int min_support) {
   ITArray P = {0};
 
   for (int i = 0; i < num_transactions; i++) {
-    printf("Iterating through transaction number: %d\n", i + 1);
     for (int j = 0; j < transactions[i].size; j++) {
       Set item = {{transactions[i].set[j]}, 1};
       Set tid = {{i + 1}, 1};
@@ -70,7 +68,6 @@ ITArray charm(Set *transactions, int num_transactions, int min_support) {
   }
   for (int i = 0; i < P.size; i++) {
     if (P.itpairs[i].tidset.size < min_support) {
-      printf("Removing a itemset that is less than the min support");
       remove_itpair(&P, i);
       i--;
     }
@@ -82,10 +79,16 @@ ITArray charm(Set *transactions, int num_transactions, int min_support) {
 }
 
 int main() {
-  Set transactions[6] = {
-      {{'a', 'c', 't', 'w'}, 4},      {{'c', 'd', 'w'}, 3},
-      {{'a', 'c', 't', 'w'}, 4},      {{'a', 'c', 'd', 'w'}, 4},
-      {{'a', 'c', 'd', 't', 'w'}, 5}, {{'c', 'd', 't'}, 3}};
-  ITArray C = charm(transactions, 6, 3);
-  print_closed_itemsets(C, true);
+  printf("Maximum array size is %d\n", ARRAY_SIZE);
+  printf("Maximum length for a dataset line is %d\n", MAX_LINE_LENGTH);
+  printf("Maximum number of transactions is %d\n", MAX_TRANSACTIONS);
+  const char *filename = "data/retail.dat";
+  const bool file_contains_characters = false;
+  int num_transactions = 0;
+  Set *transactions = read_sets_from_file(filename, &num_transactions, file_contains_characters);
+  int min_support = num_transactions / 100;
+  printf("Minimum support is 1%% of the number of transactions %d\n", min_support);
+  ITArray C = charm(transactions, num_transactions, min_support);
+  free(transactions);
+  print_closed_itemsets(C, file_contains_characters);
 }
