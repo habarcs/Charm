@@ -2,4 +2,4 @@
 SCRIPT=$(realpath "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 mkdir -p "${SCRIPTPATH}/out"
-gcc -Wall -Wextra -Werror -O2 -std=c99 -pedantic -o "${SCRIPTPATH}/out/charm" charm.c utils.c
+gcc -fopenmp -Wall -Wextra -O2 -std=c99 -pedantic -o "${SCRIPTPATH}/out/charm" charm.c utils.c

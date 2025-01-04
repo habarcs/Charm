@@ -167,13 +167,9 @@ void print_closed_itemsets(ITArray C, bool character) {
   }
 }
 
-int char_to_index(char c) {
-  return c - 'a';
-}
+int char_to_index(char c) { return c - 'a'; }
 
-char index_to_char(int i) {
-  return i + 'a';
-}
+char index_to_char(int i) { return i + 'a'; }
 
 int count_lines_in_file(const char *filename) {
   FILE *file = fopen(filename, "r");
@@ -193,7 +189,8 @@ int count_lines_in_file(const char *filename) {
   return lines;
 }
 
-Set *read_sets_from_file(const char *filename, int *num_transactions, bool characters) {
+Set *read_sets_from_file(const char *filename, int *num_transactions,
+                         bool characters) {
   *num_transactions = count_lines_in_file(filename);
   printf("Number of transactions in the dataset: %d\n", *num_transactions);
   if (*num_transactions > MAX_TRANSACTIONS) {
@@ -236,7 +233,8 @@ Set *read_sets_from_file(const char *filename, int *num_transactions, bool chara
         } else if (!characters) {
           elem = token[0];
         } else {
-          printf("Item was not a char neither an int. It will not be added to the set");
+          printf("Item was not a char neither an int. It will not be added to "
+                 "the set");
         }
         current_set->set[current_set->size++] = elem;
       }
