@@ -129,6 +129,26 @@ void add_itemset_if_not_subsumed(ITArray *C, ITPair itpair) {
   C->itpairs[C->size++] = itpair;
 }
 
+void remove_subsumed_sets(ITArray *C) {
+  for (int i = 0; i < C->size; i++) {
+    bool subsumed = false;
+    for (int j = i + 1; j < C->size; j++) {
+      if (C->itpairs[i].tidset.size == C->itpairs[j].tidset.size &&
+          is_subset(C->itpairs[i].itemset, C->itpairs[j].itemset)) {
+        subsumed = true;
+        break;
+      }
+    }
+    if (subsumed) {
+      for (int j = i; j < C->size - 1; j++) {
+        C->itpairs[j] = C->itpairs[j + 1];
+      }
+      C->size--;
+      i--;
+    }
+  }
+}
+
 void remove_itpair(ITArray *P, int pos) {
   if (pos >= P->size) {
     return;

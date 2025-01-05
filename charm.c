@@ -47,32 +47,44 @@ void charm_extend(ITArray *P, ITArray *C, int min_support, int depth) {
   }
 }
 
-void enumerate_frequent(const ITPair P, const ITArray P_children,
+void enumerate_frequent(const ITPair *P, const ITArray *P_children,
                         int min_support, ITArray *C, int depth) {
-  for (int i = 0; i < P_children.size; i++) {
-    ITPair Pi = {0};
-    Pi.itemset = set_union(P.itemset, P_children.itpairs[i].itemset);
-    if (P.tidset.size != 0) {
-      Pi.tidset = set_intersect(P.tidset, P_children.itpairs[i].tidset);
+#pragma omp parallel for schedule(guided)
+  for (int i = 0; i < P_children->size; i++) {
+    ITPair *Pi = calloc(1, sizeof(ITPair));
+    if (!Pi) {
+      fprintf(stderr, "Failed to allocate memory!");
+      abort();
+    }
+    Pi->itemset = set_union(P->itemset, P_children->itpairs[i].itemset);
+    if (depth != 0) {
+      Pi->tidset = set_intersect(P->tidset, P_children->itpairs[i].tidset);
     } else {
-      // this should be only possible if it is the first node because for that
+      // this should be only possible if it is the root node because for that
       // the tidset should be the whole transaction set but we only pass an
       // empty set
-      Pi.tidset = P_children.itpairs[i].tidset;
+      Pi->tidset = P_children->itpairs[i].tidset;
     }
-    ITArray Pi_children = {0};
+    ITArray *Pi_children = calloc(1, sizeof(ITArray));
+    if (!Pi_children) {
+      fprintf(stderr, "Failed to allcoate memory!");
+      abort();
+    }
 
-    for (int j = i + 1; j < P_children.size; j++) {
-      Set I = set_union(Pi.itemset, P_children.itpairs[j].itemset);
-      Set T = set_intersect(Pi.tidset, P_children.itpairs[j].tidset);
+    for (int j = i + 1; j < P_children->size; j++) {
+      Set I = set_union(Pi->itemset, P_children->itpairs[j].itemset);
+      Set T = set_intersect(Pi->tidset, P_children->itpairs[j].tidset);
       if (T.size >= min_support) {
-        out_of_bounds(Pi_children.size);
-        Pi_children.itpairs[Pi_children.size++] = (ITPair){I, T};
+        out_of_bounds(Pi_children->size);
+        Pi_children->itpairs[Pi_children->size++] = (ITPair){I, T};
       }
     }
     // dfs
     enumerate_frequent(Pi, Pi_children, min_support, C, depth + 1);
-    add_itemset_if_not_subsumed(C, Pi);
+    free(Pi_children);
+#pragma omp critical
+    add_itemset_if_not_subsumed(C, *Pi);
+    free(Pi);
   }
 }
 
@@ -111,7 +123,8 @@ ITArray charm(Set *transactions, int num_transactions, int min_support) {
   } else {
     printf("Running Parallel\n");
     ITPair root = {0};
-    enumerate_frequent(root, P, min_support, &C, 0);
+    enumerate_frequent(&root, &P, min_support, &C, 0);
+    remove_subsumed_sets(&C);
   }
   return C;
 }

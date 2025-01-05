@@ -2,7 +2,7 @@
 #include <stdbool.h>
 
 /******************** CONSTANTS ********************/
-#define ARRAY_SIZE 10
+#define ARRAY_SIZE 400
 #define MAX_LINE_LENGTH 400
 #define MAX_TRANSACTIONS 10000
 
@@ -33,6 +33,7 @@ bool sets_equal(Set a, Set b);
 int compare_sets(Set a, Set b);
 int compare_itpairs(const void *a, const void *b);
 void add_itemset_if_not_subsumed(ITArray *C, ITPair itpair);
+void remove_subsumed_sets(ITArray *C);
 void remove_itpair(ITArray *P, int pos);
 void replace_with(ITArray *P, Set it, Set with);
 void print_closed_itemsets(ITArray C, bool character);
