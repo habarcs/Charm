@@ -209,8 +209,72 @@ int count_lines_in_file(const char *filename) {
   return lines;
 }
 
-Set *read_sets_from_file(const char *filename, int *num_transactions,
-                         bool characters) {
+Set *read_sets_from_file_start_end(const char *filename, int *num_transactions, int rank, int size, int *partition_size, int *local_size, bool characters) {
+  *num_transactions = count_lines_in_file(filename);
+  printf("Number of transactions in the dataset: %d\n", *num_transactions);
+  if (*num_transactions > MAX_TRANSACTIONS) {
+    printf("Max number of transactions exceeded\n");
+    *num_transactions = MAX_TRANSACTIONS;
+  }
+
+  *partition_size = *num_transactions / size;
+  *local_size = (rank == size - 1) ? *num_transactions - *partition_size * (size - 1) : *partition_size;
+
+  Set *transactions = malloc(*local_size * sizeof(Set));
+  if (!transactions) {
+    perror("Failed to allocate memory for transactions");
+    exit(EXIT_FAILURE);
+  }
+
+  FILE *file = fopen(filename, "r");
+  if (!file) {
+    perror("Failed to open file");
+    free(transactions);
+    exit(EXIT_FAILURE);
+  }
+
+  char line[MAX_LINE_LENGTH];
+  int start_index = rank * *partition_size;
+  int end_index = start_index + *local_size;
+  int transaction_index = 0, line_index = -1;
+
+  while (fgets(line, sizeof(line), file) && start_index < end_index) {
+    line_index++;
+    if (line_index < start_index) {
+      continue;
+    }
+    size_t len = strlen(line);
+    if (len > 0 && line[len - 1] == '\n') {
+      line[len - 1] = '\0';
+    }
+
+    Set *current_set = &transactions[transaction_index++];
+    current_set->size = 0;
+
+    char *token = strtok(line, " ");
+    while (token && *token != '\n') {
+      if (strlen(token) == 1) {
+        int elem = -1;
+        if (characters && token[0] >= 'a' && token[0] <= 'z') {
+          // to save memory, we can convert the char in an int
+          elem = char_to_index(token[0]);
+        } else if (!characters) {
+          elem = token[0];
+        } else {
+          printf("Item was not a char neither an int. It will not be added to the set\n");
+        }
+        current_set->set[current_set->size++] = elem;
+      }
+      token = strtok(NULL, " ");
+    }
+    start_index++;
+  }
+
+  fclose(file);
+  return transactions;
+}
+
+Set *read_sets_from_file(const char *filename, int *num_transactions, bool characters) {
   *num_transactions = count_lines_in_file(filename);
   printf("Number of transactions in the dataset: %d\n", *num_transactions);
   if (*num_transactions > MAX_TRANSACTIONS) {
@@ -253,8 +317,7 @@ Set *read_sets_from_file(const char *filename, int *num_transactions,
         } else if (!characters) {
           elem = token[0];
         } else {
-          printf("Item was not a char neither an int. It will not be added to "
-                 "the set");
+          printf("Item was not a char neither an int. It will not be added to the set\n");
         }
         current_set->set[current_set->size++] = elem;
       }
