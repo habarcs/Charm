@@ -1,4 +1,5 @@
 #include "charm_functions.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 void charm_extend(ITArray *P, ITArray *C, int min_support) {
