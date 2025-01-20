@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-void charm_extend(ITArray *P, ITArray *C, int min_support, int depth) {
+void charm_extend(ITArray *P, ITArray *C, int min_support) {
   for (int i = 0; i < P->size; i++) {
     ITArray Pi = {0};
     Set Xi = P->itpairs[i].itemset;
@@ -41,7 +41,7 @@ void charm_extend(ITArray *P, ITArray *C, int min_support, int depth) {
       }
     }
     if (Pi.size > 0) {
-      charm_extend(&Pi, C, min_support, depth + 1);
+      charm_extend(&Pi, C, min_support);
     }
     add_itemset_if_not_subsumed(C, (ITPair){Xi, tXi});
   }
@@ -119,7 +119,7 @@ ITArray charm(Set *transactions, int num_transactions, int min_support) {
 
   if (getenv("CHARM_SEQ")) {
     printf("Running Sequentially\n");
-    charm_extend(&P, &C, min_support, 0);
+    charm_extend(&P, &C, min_support);
   } else {
     printf("Running Parallel\n");
     ITPair root = {0};
@@ -134,15 +134,12 @@ int main() {
   printf("Maximum array size is %d\n", ARRAY_SIZE);
   printf("Maximum length for a dataset line is %d\n", MAX_LINE_LENGTH);
   printf("Maximum number of transactions is %d\n", MAX_TRANSACTIONS);
-
-  const char *filename = "data/small_transactions.dat";
-  const bool file_contains_characters = true;
+  const char *filename = "data/retail.dat";
+  const bool file_contains_characters = false;
   int num_transactions = 0;
-  Set *transactions = read_sets_from_file(filename, &num_transactions,
-                                          file_contains_characters);
-  int min_support = 3;
-  printf("Minimum support is 1%% of the number of transactions %d\n",
-         min_support);
+  Set *transactions = read_sets_from_file(filename, &num_transactions, file_contains_characters);
+  int min_support = num_transactions / 100;
+  printf("Minimum support is 1%% of the number of transactions %d\n", min_support);
 
   struct timespec start, stop;
   clock_gettime(CLOCK_MONOTONIC, &start);
