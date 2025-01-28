@@ -56,8 +56,8 @@ void enumerate_frequent(const ITPair *P, const ITArray *P_children,
     if (depth != 0) {
       Pi->tidset = set_intersect(P->tidset, P_children->itpairs[i].tidset);
     } else {
-      // this should be only possible if it is the root node because for that
-      // the tidset should be the whole transaction set but we only pass an
+      // this should only be possible if it is the root node. Normally for the
+      // root node the tidset is the whole transaction set but we only pass an
       // empty set
       Pi->tidset = P_children->itpairs[i].tidset;
     }
