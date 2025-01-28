@@ -209,7 +209,9 @@ int count_lines_in_file(const char *filename) {
   return lines;
 }
 
-Set *read_sets_from_file_start_end(const char *filename, int *num_transactions, int rank, int size, int *partition_size, int *local_size, bool characters) {
+Set *read_sets_from_file_start_end(const char *filename, int *num_transactions,
+                                   int rank, int size, int *partition_size,
+                                   int *local_size, bool characters) {
   *num_transactions = count_lines_in_file(filename);
   printf("Number of transactions in the dataset: %d\n", *num_transactions);
   if (*num_transactions > MAX_TRANSACTIONS) {
@@ -218,7 +220,9 @@ Set *read_sets_from_file_start_end(const char *filename, int *num_transactions, 
   }
 
   *partition_size = *num_transactions / size;
-  *local_size = (rank == size - 1) ? *num_transactions - *partition_size * (size - 1) : *partition_size;
+  *local_size = (rank == size - 1)
+                    ? *num_transactions - *partition_size * (size - 1)
+                    : *partition_size;
 
   Set *transactions = malloc(*local_size * sizeof(Set));
   if (!transactions) {
@@ -261,7 +265,8 @@ Set *read_sets_from_file_start_end(const char *filename, int *num_transactions, 
         } else if (!characters) {
           elem = token[0];
         } else {
-          printf("Item was not a char neither an int. It will not be added to the set\n");
+          printf("Item was not a char neither an int. It will not be added to "
+                 "the set\n");
         }
         current_set->set[current_set->size++] = elem;
       }
@@ -274,7 +279,8 @@ Set *read_sets_from_file_start_end(const char *filename, int *num_transactions, 
   return transactions;
 }
 
-Set *read_sets_from_file(const char *filename, int *num_transactions, bool characters) {
+Set *read_sets_from_file(const char *filename, int *num_transactions,
+                         bool characters) {
   *num_transactions = count_lines_in_file(filename);
   printf("Number of transactions in the dataset: %d\n", *num_transactions);
   if (*num_transactions > MAX_TRANSACTIONS) {
@@ -317,7 +323,8 @@ Set *read_sets_from_file(const char *filename, int *num_transactions, bool chara
         } else if (!characters) {
           elem = token[0];
         } else {
-          printf("Item was not a char neither an int. It will not be added to the set\n");
+          printf("Item was not a char neither an int. It will not be added to "
+                 "the set\n");
         }
         current_set->set[current_set->size++] = elem;
       }
