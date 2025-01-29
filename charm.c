@@ -14,9 +14,11 @@ int main() {
   const char *filename = "data/retail.dat";
   const bool file_contains_characters = false;
   int num_transactions = 0;
-  Set *transactions = read_sets_from_file(filename, &num_transactions, file_contains_characters);
+  Set *transactions = read_sets_from_file(filename, &num_transactions,
+                                          file_contains_characters);
   int min_support = num_transactions / 100;
-  printf("Minimum support is 1%% of the number of transactions %d\n", min_support);
+  printf("Minimum support is 1%% of the number of transactions %d\n",
+         min_support);
 
   struct timespec start, stop;
   clock_gettime(CLOCK_MONOTONIC, &start);

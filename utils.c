@@ -315,17 +315,17 @@ Set *read_sets_from_file(const char *filename, int *num_transactions,
 
     char *token = strtok(line, " ");
     while (token && *token != '\n') {
-      if (strlen(token) == 1) {
+      if (characters) {
         int elem = -1;
-        if (characters && token[0] >= 'a' && token[0] <= 'z') {
+        if (strlen(token) == 1 && token[0] >= 'a' && token[0] <= 'z') {
           // to save memory, we can convert the char in an int
           elem = char_to_index(token[0]);
-        } else if (!characters) {
-          elem = token[0];
         } else {
-          printf("Item was not a char neither an int. It will not be added to "
-                 "the set\n");
+          printf("Item cannot be loaded. It will not be added to the set\n");
         }
+        current_set->set[current_set->size++] = elem;
+      } else {
+        int elem = atoi(token);
         current_set->set[current_set->size++] = elem;
       }
       token = strtok(NULL, " ");
