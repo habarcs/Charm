@@ -2,15 +2,10 @@
 #include <stdbool.h>
 
 /******************** CONSTANTS ********************/
-#define ARRAY_SIZE 400
 #define MAX_LINE_LENGTH 400
 #define MAX_TRANSACTIONS 10000
 
 /******************** STRUCTS ********************/
-typedef struct {
-  int set[ARRAY_SIZE];
-  int size;
-} Set;
 
 typedef struct {
   Set itemset;
@@ -25,12 +20,6 @@ typedef struct {
 /******************** METHODS ********************/
 
 int compare(const void *a, const void *b);
-void out_of_bounds(int i);
-Set set_union(Set a, Set b);
-Set set_intersect(Set a, Set b);
-bool is_subset(Set sub, Set sup);
-bool sets_equal(Set a, Set b);
-int compare_sets(Set a, Set b);
 int compare_itpairs(const void *a, const void *b);
 void add_itemset_if_not_subsumed(ITArray *C, ITPair itpair);
 void remove_subsumed_sets(ITArray *C);
