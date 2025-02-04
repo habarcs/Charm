@@ -24,6 +24,8 @@ void itarray_free(ITArray *array) {
     set_free(&array->itpairs[i].tidset);
   }
   free(array->itpairs);
+  array->cap = 0;
+  array->size = 0;
 }
 
 int compare_itpairs(const void *a, const void *b) {
@@ -40,7 +42,7 @@ int compare_itpairs_support(const void *a, const void *b) {
   return 0;
 }
 
-void add_itpair(ITArray *array, ITPair itpair) {
+int itarray_add(ITArray *array, const Set *itemset, const Set *tidset) {
   if (array->size == array->cap) {
     int new_cap = 2 * array->cap;
     ITPair *new = realloc(array->itpairs, new_cap * sizeof(ITPair));
@@ -51,24 +53,36 @@ void add_itpair(ITArray *array, ITPair itpair) {
     array->itpairs = new;
     array->cap = new_cap;
   }
-  array->itpairs[array->size] = itpair;
+  int pos = array->size;
   array->size++;
+  if (itemset) {
+    set_copy(itemset, &array->itpairs[pos].itemset);
+  } else {
+    set_init(&array->itpairs[pos].itemset, 1);
+  }
+  if (tidset) {
+    set_copy(tidset, &array->itpairs[pos].tidset);
+  }
+  set_init(&array->itpairs[pos].tidset, 1);
+  return pos;
 }
 
-void add_itemset_if_not_subsumed(ITArray *C, ITPair itpair) {
+bool itarray_is_itpair_subsumed(ITArray *C, const ITPair *itpair) {
   for (int i = 0; i < C->size; i++) {
-    if (C->itpairs[i].tidset.size == itpair.tidset.size &&
-        is_subset(&itpair.itemset, &C->itpairs[i].itemset)) {
-      return;
+    if (C->itpairs[i].tidset.size == itpair->tidset.size &&
+        is_subset(&itpair->itemset, &C->itpairs[i].itemset)) {
+      return true;
     }
   }
-  add_itpair(C, itpair);
+  return false;
 }
 
-void remove_itpair(ITArray *P, int pos) {
+void itarray_remove(ITArray *P, int pos) {
   if (pos >= P->size) {
     return;
   }
+  set_free(&P->itpairs[pos].itemset);
+  set_free(&P->itpairs[pos].tidset);
   for (int i = pos; i < P->size - 1; i++) {
     P->itpairs[i] = P->itpairs[i + 1];
   }
@@ -76,28 +90,20 @@ void remove_itpair(ITArray *P, int pos) {
   // TODO maybe shrink array if size is much lower then cap
 }
 
-void remove_subsumed_sets(ITArray *C) {
+void itarray_remove_subsumed_sets(ITArray *C) {
   for (int i = 0; i < C->size; i++) {
-    bool subsumed = false;
-    for (int j = i + 1; j < C->size; j++) {
-      if (C->itpairs[i].tidset.size == C->itpairs[j].tidset.size &&
-          is_subset(&C->itpairs[i].itemset, &C->itpairs[j].itemset)) {
-        subsumed = true;
-        break;
-      }
-    }
-    if (subsumed) {
-      remove_itpair(C, i);
+    if (itarray_is_itpair_subsumed(C, &C->itpairs[i])) {
+      itarray_remove(C, i);
       i--;
     }
   }
 }
 
-void replace_with(ITArray *P, Set it, Set with) {
+void itarray_replace_with(ITArray *P, const Set *it, const Set *with) {
   for (int i = 0; i < P->size; i++) {
-    if (is_subset(&it, &P->itpairs[i].itemset)) {
-      for (int j = 0; j < with.size; j++) {
-        set_add(&P->itpairs[0].itemset, with.set[j]);
+    if (is_subset(it, &P->itpairs[i].itemset)) {
+      for (int j = 0; j < with->size; j++) {
+        set_add(&P->itpairs[0].itemset, with->set[j]);
       }
     }
   }

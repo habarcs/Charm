@@ -1,4 +1,6 @@
 #include "charm_functions.h"
+#include "itarray.h"
+#include "set.h"
 #include "utils.h"
 #include <omp.h>
 #include <stdbool.h>
@@ -8,7 +10,6 @@
 
 int main() {
   printf("Max Threads: %d\n", omp_get_max_threads());
-  printf("Maximum array size is %d\n", ARRAY_SIZE);
   printf("Maximum length for a dataset line is %d\n", MAX_LINE_LENGTH);
   printf("Maximum number of transactions is %d\n", MAX_TRANSACTIONS);
   const char *filename = "data/retail.dat";
@@ -33,5 +34,6 @@ int main() {
   printf("Charm took %.2f ms to run\n", duration);
 
   free(transactions);
-  print_closed_itemsets(C, file_contains_characters);
+  print_closed_itemsets(&C, file_contains_characters);
+  itarray_free(&C);
 }

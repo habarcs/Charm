@@ -31,6 +31,7 @@ void itarray_init(ITArray *array, int initial_cap);
 
 /*
   frees the dynamic memory of array
+  also frees the itemsets and tidsets of pairs
 */
 void itarray_free(ITArray *array);
 
@@ -51,32 +52,41 @@ int compare_itpairs_support(const void *a, const void *b);
 /*
   adds itpair to the array
   array has to be a valid pointer to ITArray
+  return the index to the newly added and initialized ITPair
+  if the itemset and tidset pointers are NULL
+  the itemset and tidset will be initialized, so can be used immediately
+  if the itemset and tidset are valid pointers to sets they will be copied to
+  the newly created itpair at pos
 */
-void add_itpair(ITArray *array, ITPair itpair);
+int itarray_add(ITArray *array, const Set *itemset, const Set *tidset);
 
 /*
-  adds itpair to the array C, if it isn't subsumed
+  returns true if itpair is already subsumed by another itpair in C
   C has to be a valid pointer to ITArray
+  itpair has to be a valid pointer to an itpair
+
 */
-void add_itemset_if_not_subsumed(ITArray *C, ITPair itpair);
+bool itarray_is_itpair_subsumed(ITArray *C, const ITPair *itpair);
 
 /*
   removes all itpairs from C if they are already subsumed by other itpairs in C
   C has to be a valid pointer to ITArray
 */
-void remove_subsumed_sets(ITArray *C);
+void itarray_remove_subsumed_sets(ITArray *C);
 
 /*
   removes itpair at position pos from P
   P has to be a valid pointer to ITArray
+  also frees the itemset and tidset of the ITPair
 */
-void remove_itpair(ITArray *P, int pos);
+void itarray_remove(ITArray *P, int pos);
 
 /*
   replaces every occurence of set it with set with in all itemsets of ITArray P
   P has to be a valid pointer to ITArray
+  it and with have to be valid pointers to sets
 */
-void replace_with(ITArray *P, Set it, Set with);
+void itarray_replace_with(ITArray *P, const Set *it, const Set *with);
 
 /*
   prints the ITPairs of C to stdout

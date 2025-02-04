@@ -1,82 +1,10 @@
 #include "utils.h"
+#include "set.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 int compare(const void *a, const void *b) { return *(int *)a - *(int *)b; }
-
-int compare_itpairs(const void *a, const void *b) {
-  return compare_sets(((ITPair *)a)->itemset, ((ITPair *)b)->itemset);
-}
-
-void add_itemset_if_not_subsumed(ITArray *C, ITPair itpair) {
-  for (int i = 0; i < C->size; i++) {
-    if (C->itpairs[i].tidset.size == itpair.tidset.size &&
-        is_subset(itpair.itemset, C->itpairs[i].itemset)) {
-      return;
-    }
-  }
-  out_of_bounds(C->size);
-  C->itpairs[C->size++] = itpair;
-}
-
-void remove_subsumed_sets(ITArray *C) {
-  for (int i = 0; i < C->size; i++) {
-    bool subsumed = false;
-    for (int j = i + 1; j < C->size; j++) {
-      if (C->itpairs[i].tidset.size == C->itpairs[j].tidset.size &&
-          is_subset(C->itpairs[i].itemset, C->itpairs[j].itemset)) {
-        subsumed = true;
-        break;
-      }
-    }
-    if (subsumed) {
-      for (int j = i; j < C->size - 1; j++) {
-        C->itpairs[j] = C->itpairs[j + 1];
-      }
-      C->size--;
-      i--;
-    }
-  }
-}
-
-void remove_itpair(ITArray *P, int pos) {
-  if (pos >= P->size) {
-    return;
-  }
-  for (int i = pos; i < P->size - 1; i++) {
-    P->itpairs[i] = P->itpairs[i + 1];
-  }
-  P->size--;
-}
-
-void replace_with(ITArray *P, Set it, Set with) {
-  for (int i = 0; i < P->size; i++) {
-    if (is_subset(it, P->itpairs[i].itemset)) {
-      P->itpairs[i].itemset = set_union(P->itpairs[i].itemset, with);
-    }
-  }
-}
-
-// we can convert back to char the items
-void print_closed_itemsets(ITArray C, bool character) {
-  printf("Closed itemsets found:\n");
-  for (int i = 0; i < C.size; i++) {
-    printf("itemset: ");
-    for (int j = 0; j < C.itpairs[i].itemset.size; j++) {
-      if (character) {
-        printf("%c ", index_to_char(C.itpairs[i].itemset.set[j]));
-      } else {
-        printf("%d ", C.itpairs[i].itemset.set[j]);
-      }
-    }
-    printf("\t| tids: ");
-    for (int j = 0; j < C.itpairs[i].tidset.size; j++) {
-      printf("%d ", C.itpairs[i].tidset.set[j]);
-    }
-    printf("\n");
-  }
-}
 
 int char_to_index(char c) { return c - 'a'; }
 
@@ -93,7 +21,17 @@ int count_lines_in_file(const char *filename) {
   char buffer[MAX_LINE_LENGTH];
 
   while (fgets(buffer, sizeof(buffer), file)) {
-    lines++;
+    for (int i = 0; buffer[i] != '\0'; i++) {
+      bool new_line;
+      if (buffer[i] == '\n') {
+        lines++;
+        new_line = true;
+      }
+      if (!new_line) {
+        perror("Line exceeds maximum line length");
+        exit(EXIT_FAILURE);
+      }
+    }
   }
 
   fclose(file);
@@ -142,24 +80,23 @@ Set *read_sets_from_file_start_end(const char *filename, int *num_transactions,
     if (len > 0 && line[len - 1] == '\n') {
       line[len - 1] = '\0';
     }
-
     Set *current_set = &transactions[transaction_index++];
-    current_set->size = 0;
+    set_init(current_set, len / 2);
 
     char *token = strtok(line, " ");
     while (token && *token != '\n') {
-      if (strlen(token) == 1) {
+      if (characters) {
         int elem = -1;
-        if (characters && token[0] >= 'a' && token[0] <= 'z') {
+        if (strlen(token) == 1 && token[0] >= 'a' && token[0] <= 'z') {
           // to save memory, we can convert the char in an int
           elem = char_to_index(token[0]);
-        } else if (!characters) {
-          elem = token[0];
         } else {
-          printf("Item was not a char neither an int. It will not be added to "
-                 "the set\n");
+          printf("Item cannot be loaded. It will not be added to the set\n");
         }
-        current_set->set[current_set->size++] = elem;
+        set_add(current_set, elem);
+      } else {
+        int elem = atoi(token);
+        set_add(current_set, elem);
       }
       token = strtok(NULL, " ");
     }
@@ -202,7 +139,7 @@ Set *read_sets_from_file(const char *filename, int *num_transactions,
     }
 
     Set *current_set = &transactions[index];
-    current_set->size = 0;
+    set_init(current_set, len / 2);
 
     char *token = strtok(line, " ");
     while (token && *token != '\n') {
@@ -214,10 +151,10 @@ Set *read_sets_from_file(const char *filename, int *num_transactions,
         } else {
           printf("Item cannot be loaded. It will not be added to the set\n");
         }
-        current_set->set[current_set->size++] = elem;
+        set_add(current_set, elem);
       } else {
         int elem = atoi(token);
-        current_set->set[current_set->size++] = elem;
+        set_add(current_set, elem);
       }
       token = strtok(NULL, " ");
     }

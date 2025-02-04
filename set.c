@@ -16,7 +16,11 @@ void set_init(Set *set, int initial_cap) {
   set->size = 0;
 }
 
-void set_free(Set *set) { free(set->set); }
+void set_free(Set *set) {
+  free(set->set);
+  set->cap = 0;
+  set->size = 0;
+}
 
 void set_add(Set *set, int elem) {
   int pos = set->size;
@@ -44,6 +48,13 @@ void set_add(Set *set, int elem) {
   }
   set->set[pos] = elem;
   set->size++;
+}
+
+void set_copy(const Set *set, Set *target) {
+  set_init(target, set->size);
+  for (int i = 0; i < set->size; i++) {
+    set_add(target, set->set[i]);
+  }
 }
 
 void set_union(const Set *a, const Set *b, Set *uni) {
