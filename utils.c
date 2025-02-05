@@ -21,16 +21,16 @@ int count_lines_in_file(const char *filename) {
   char buffer[MAX_LINE_LENGTH];
 
   while (fgets(buffer, sizeof(buffer), file)) {
+    bool new_line = false;
     for (int i = 0; buffer[i] != '\0'; i++) {
-      bool new_line;
       if (buffer[i] == '\n') {
         lines++;
         new_line = true;
       }
-      if (!new_line) {
-        perror("Line exceeds maximum line length");
-        exit(EXIT_FAILURE);
-      }
+    }
+    if (!new_line) {
+      perror("Line exceeds maximum line length\n");
+      exit(EXIT_FAILURE);
     }
   }
 

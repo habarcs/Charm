@@ -17,9 +17,9 @@ typedef struct {
 /*
   This function initializes a sets dynamic memory
   set is a pointer to a Set
-  initial_cap initial capacity of the dynamic array, has to be greater than zero
-  the size, cap and set pointers will be overwritten
-  use only once per set
+  initial_cap initial capacity of the dynamic array, if zero or less 1 is used
+  for the capacity the size, cap and set pointers will be overwritten use only
+  once per set
 */
 void set_init(Set *set, int initial_cap);
 
@@ -48,7 +48,7 @@ void set_union(const Set *a, const Set *b, Set *uni);
   the dynamic array in target doesn't have to be initialized before!
   set has to be a valid pointer to Set
 */
-void set_copy(const Set *set, Set *target);
+void set_copy(const Set *from, Set *target);
 
 /*
   Initializes and fills inter with the intersection of a and b

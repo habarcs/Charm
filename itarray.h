@@ -23,7 +23,7 @@ typedef struct {
 
 /*
   initializes the dynamic memory of it array to have initial_cap size
-  initial_cap has to be greater than 0
+  initial_cap if 0 or less 1 will be used for the capacity
   overwrites size, cap and itpairs
   use only once per ITArray
 */

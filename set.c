@@ -4,12 +4,11 @@
 
 void set_init(Set *set, int initial_cap) {
   if (initial_cap <= 0) {
-    fprintf(stderr, "set_init, initial_cap has to be bigger then zero");
-    abort();
+    initial_cap = 1;
   }
   set->set = calloc(initial_cap, sizeof(int));
   if (!set->set) {
-    fprintf(stderr, "Failed to allocate memory for set");
+    fprintf(stderr, "Failed to allocate memory for set\n");
     abort();
   }
   set->cap = initial_cap;
@@ -18,6 +17,7 @@ void set_init(Set *set, int initial_cap) {
 
 void set_free(Set *set) {
   free(set->set);
+  set->set = NULL;
   set->cap = 0;
   set->size = 0;
 }
@@ -37,7 +37,7 @@ void set_add(Set *set, int elem) {
     int new_cap = 2 * set->cap;
     int *new = realloc(set->set, new_cap * sizeof(int));
     if (!new) {
-      fprintf(stderr, "Failed to allocate memory for set");
+      fprintf(stderr, "Failed to allocate memory for set\n");
       abort();
     }
     set->set = new;
@@ -50,10 +50,10 @@ void set_add(Set *set, int elem) {
   set->size++;
 }
 
-void set_copy(const Set *set, Set *target) {
-  set_init(target, set->size);
-  for (int i = 0; i < set->size; i++) {
-    set_add(target, set->set[i]);
+void set_copy(const Set *from, Set *target) {
+  set_init(target, from->size);
+  for (int i = 0; i < from->size; i++) {
+    set_add(target, from->set[i]);
   }
 }
 

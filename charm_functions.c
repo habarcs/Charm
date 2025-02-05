@@ -32,7 +32,7 @@ void charm_extend(ITArray *P, ITArray *C, int min_support) {
           set_free(&Xi);
           set_copy(&Xij, &Xi);
           set_free(&tXi);
-          set_copy(&tXi, &tXij);
+          set_copy(&tXij, &tXi);
           itarray_remove(P, j);
           j--;
         } else {
@@ -42,11 +42,11 @@ void charm_extend(ITArray *P, ITArray *C, int min_support) {
             set_free(&Xi);
             set_copy(&Xij, &Xi);
             set_free(&tXi);
-            set_copy(&tXi, &tXij);
+            set_copy(&tXij, &tXi);
           } else {
             itarray_add(&Pi, &Xij, &tXij);
-            qsort(&Pi.itpairs, Pi.size, sizeof(ITPair), compare_itpairs);
-            // qsort(&Pi.itpairs, Pi.size, sizeof(ITPair),
+            qsort(Pi.itpairs, Pi.size, sizeof(ITPair), compare_itpairs);
+            // qsort(Pi.itpairs, Pi.size, sizeof(ITPair),
             // compare_itpairs_support);
           }
         }
@@ -103,10 +103,8 @@ void enumerate_frequent(const ITPair *P, const ITArray *P_children,
     enumerate_frequent(&Pi, &Pi_children, min_support, C, depth + 1);
 
 #pragma omp critical
-    {
-      if (!itarray_is_itpair_subsumed(C, &Pi)) {
-        itarray_add(C, &Pi.itemset, &Pi.tidset);
-      }
+    if (!itarray_is_itpair_subsumed(C, &Pi)) {
+      itarray_add(C, &Pi.itemset, &Pi.tidset);
     }
 
     itarray_free(&Pi_children);
@@ -147,17 +145,17 @@ ITArray charm(Set *transactions, int num_transactions, int min_support) {
       i--;
     }
   }
-  qsort(&P.itpairs, P.size, sizeof(ITPair), compare_itpairs);
-  // qsort(&P.itpairs, P.size, sizeof(ITPair), compare_itpairs_support);
+  qsort(P.itpairs, P.size, sizeof(ITPair), compare_itpairs);
+  // qsort(P.itpairs, P.size, sizeof(ITPair), compare_itpairs_support);
 
-  if (getenv("CHARM_SEQ")) {
-    printf("Running Sequentially\n");
-    charm_extend(&P, &C, min_support);
-  } else {
+  if (getenv("CHARM_OPENMP")) {
     printf("Running Parallel\n");
     ITPair root = {0};
     enumerate_frequent(&root, &P, min_support, &C, 0);
     itarray_remove_subsumed_sets(&C);
+  } else {
+    printf("Running Sequentially\n");
+    charm_extend(&P, &C, min_support);
   }
   itarray_free(&P);
   return C;

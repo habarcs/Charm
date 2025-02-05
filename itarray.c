@@ -24,6 +24,7 @@ void itarray_free(ITArray *array) {
     set_free(&array->itpairs[i].tidset);
   }
   free(array->itpairs);
+  array->itpairs = NULL;
   array->cap = 0;
   array->size = 0;
 }
@@ -62,8 +63,9 @@ int itarray_add(ITArray *array, const Set *itemset, const Set *tidset) {
   }
   if (tidset) {
     set_copy(tidset, &array->itpairs[pos].tidset);
+  } else {
+    set_init(&array->itpairs[pos].tidset, 1);
   }
-  set_init(&array->itpairs[pos].tidset, 1);
   return pos;
 }
 
@@ -121,7 +123,7 @@ void print_closed_itemsets(ITArray *C, bool character) {
         printf("%d ", C->itpairs[i].itemset.set[j]);
       }
     }
-    printf("\t\t| tids: ");
+    printf("\t| tids: ");
     for (int j = 0; j < C->itpairs[i].tidset.size; j++) {
       printf("%d ", C->itpairs[i].tidset.set[j]);
     }
