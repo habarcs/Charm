@@ -82,7 +82,8 @@ void enumerate_frequent(const ITPair *P, const ITArray *P_children,
       // empty set to save space
       set_copy(&P_children->itpairs[i].tidset, &Pi.tidset);
     }
-    ITArray Pi_children = {0};
+    ITArray Pi_children;
+    itarray_init(&Pi_children, P_children->size - i);
 
     for (int j = i + 1; j < P_children->size; j++) {
       Set I;
@@ -90,11 +91,7 @@ void enumerate_frequent(const ITPair *P, const ITArray *P_children,
       Set T;
       set_intersect(&Pi.tidset, &P_children->itpairs[j].tidset, &T);
       if (T.size >= min_support) {
-        Set I_copy;
-        set_copy(&I, &I_copy);
-        Set T_copy;
-        set_copy(&T, &T_copy);
-        itarray_add(&Pi_children, &I_copy, &T_copy);
+        itarray_add(&Pi_children, &I, &T);
       }
       set_free(&I);
       set_free(&T);

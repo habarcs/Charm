@@ -6,8 +6,7 @@
 
 void itarray_init(ITArray *array, int initial_cap) {
   if (initial_cap <= 0) {
-    fprintf(stderr, "itarray_init, initial_cap has to be bigger then zero");
-    abort();
+    initial_cap = 1;
   }
   array->itpairs = calloc(initial_cap, sizeof(ITPair));
   if (!array->itpairs) {

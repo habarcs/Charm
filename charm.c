@@ -37,6 +37,8 @@ int main() {
     set_free(&transactions[i]);
   }
   free(transactions);
+
+  qsort(C.itpairs, C.size, sizeof(ITPair), compare_itpairs);
   print_closed_itemsets(&C, file_contains_characters);
   itarray_free(&C);
 }

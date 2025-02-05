@@ -119,6 +119,10 @@ bool is_subset(const Set *sub, const Set *sup) {
   if (i < sub->size) {
     return false;
   }
+  if (sub->size == sup->size) {
+    // sub and sup is the same set, so not sub is not a proper subset
+    return false;
+  }
   return true;
 }
 
