@@ -4,7 +4,7 @@
 
 /******************** CONSTANTS ********************/
 #define MAX_LINE_LENGTH 400
-#define MAX_TRANSACTIONS 10000
+#define MAX_TRANSACTIONS 100000
 
 /******************** METHODS ********************/
 
