@@ -1,11 +1,15 @@
 #!/bin/bash
-#PBS -l select=4:ncpus=8
+
+#PBS -l select=1:ncpus=1
+
+# define the queue
 #PBS -q short_cpuQ
-#PBS -l walltime=00:10:00
-#PBS -N template_test
-#PBS -o template_test.out
-#PBS -e template_test.err
-#PBS -M your.user@unitn.it
-#PBS -m abe
-cd ${PBS_O_WORKDIR}
-sleep 600
+
+# set the excecution time
+#PBS -l walltime=00:00:10
+
+# set user (optional)
+#PBS -M andrea.leoni-1@unitn.it
+
+module load mpich-3.2
+./run_parallel.sh
