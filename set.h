@@ -51,6 +51,12 @@ void set_union(const Set *a, const Set *b, Set *uni);
 void set_copy(const Set *from, Set *target);
 
 /*
+  Similar to an inplace union, every element from "from" will be added to target
+  set Both from and target have to be valid pointers to Set
+*/
+void set_add_all(const Set *from, Set *target);
+
+/*
   Initializes and fills inter with the intersection of a and b
   the dynamic array in inter doesn't have to be initialized before!
   a and b have to be valid pointers to Set

@@ -50,11 +50,15 @@ void set_add(Set *set, int elem) {
   set->size++;
 }
 
-void set_copy(const Set *from, Set *target) {
-  set_init(target, from->size);
+void set_add_all(const Set *from, Set *target) {
   for (int i = 0; i < from->size; i++) {
     set_add(target, from->set[i]);
   }
+}
+
+void set_copy(const Set *from, Set *target) {
+  set_init(target, from->size);
+  set_add_all(from, target);
 }
 
 void set_union(const Set *a, const Set *b, Set *uni) {
