@@ -1,4 +1,4 @@
-#!/bin/sh 
+#!/bin/sh
 SCRIPT=$(realpath "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 mkdir -p "${SCRIPTPATH}/out"
