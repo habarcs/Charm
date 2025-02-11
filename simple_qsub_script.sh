@@ -12,4 +12,4 @@
 #PBS -M andrea.leoni-1@unitn.it
 
 module load mpich-3.2
-./run_parallel.sh
+mpirun.actual -n ./charm_parallel
