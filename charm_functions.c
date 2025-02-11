@@ -110,7 +110,8 @@ void enumerate_frequent(const ITPair *P, const ITArray *P_children,
   }
 }
 
-ITArray charm(Set *transactions, int num_transactions, int min_support) {
+ITArray charm(Set *transactions, int num_transactions, int min_support,
+              int tid_start) {
   ITArray C;
   itarray_init(&C, 1 + num_transactions / 1000);
   ITArray P;
@@ -119,7 +120,7 @@ ITArray charm(Set *transactions, int num_transactions, int min_support) {
   for (int i = 0; i < num_transactions; i++) {
     for (int j = 0; j < transactions[i].size; j++) {
       int item = transactions[i].set[j];
-      int tid = i + 1;
+      int tid = tid_start + i;
       bool already_added = false;
       for (int k = 0; k < P.size; k++) {
         ITPair *itpair = &P.itpairs[k];

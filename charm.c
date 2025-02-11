@@ -25,7 +25,7 @@ int main() {
   clock_gettime(CLOCK_MONOTONIC, &start);
 
   // ~~~~~~ Run charm ~~~~~~~
-  ITArray C = charm(transactions, num_transactions, min_support);
+  ITArray C = charm(transactions, num_transactions, min_support, 1);
   // ~~~~~~~~~~~~~~~~~~~~~~~~
 
   clock_gettime(CLOCK_MONOTONIC, &stop);
