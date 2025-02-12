@@ -23,7 +23,7 @@ int main() {
   char *data_path_file;
 
   if (data_path == NULL || data_file == NULL) {
-    printf("Data path and file must be defined!");
+    fprintf(stderr, "Data path and file must be defined!");
     return -1;
   } else {
     asprintf(&data_path_file, "%s/%s", data_path, data_file);
@@ -35,34 +35,28 @@ int main() {
     characters = atoi(env_char) != 0;
   }
 
-  // get and divide the dataset
+  char *env_min_support = getenv("MIN_SUPPORT");
+  int min_support = -1;
+  if (env_min_support == NULL) {
+    fprintf(stderr, "Min support is missing but required!");
+    return -1;
+  } else {
+    min_support = atoi(env_min_support);
+  }
+
   int num_transactions = 0, partition_size = 0, local_size = 0;
   Set *transactions = read_sets_from_file_start_end(
       data_path_file, &num_transactions, rank, size,
       &partition_size, &local_size, characters);
-  printf("Process %d has the %d transactions\n", rank, local_size);
-  // for (int i = 0; i < local_size; i++) {
-  //   Set *t = &transactions[i];
-  //   printf("\nItemset (size %d): ", t->size);
-  //   for (int j = 0; j < t->size; j++) {
-  //     printf(" %c ", index_to_char(t->set[j]));
-  //   }
-  // }
-  // printf("\n");
+  printf("Process %d has %d transactions\n", rank, local_size);
 
-  // compute first iteration in serial ??? No, i think that should already be
-  // parallelized
-  charm(transactions, local_size, 3);
-
-  // compute charm_extend() in parallel
-
-  // how to gather the results later? MPI_Gather I suppose ...
+  charm(transactions, local_size, min_support);
 
   free(transactions);
 
   end_time = MPI_Wtime();
   total_time = end_time - start_time;
-  printf("Process %d: Execution time = %f seconds\n", rank, total_time);
+  printf("Process %d took %f seconds\n", rank, total_time);
 
   MPI_Finalize();
 

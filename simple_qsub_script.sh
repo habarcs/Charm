@@ -6,7 +6,7 @@
 #PBS -q short_cpuQ
 
 # set the excecution time
-#PBS -l walltime=00:00:10
+#PBS -l walltime=00:10:00
 
 # set user (optional)
 #PBS -M andrea.leoni-1@unitn.it
@@ -17,6 +17,6 @@ export CHARM_OPENMP=1
 export DATA_PATH=/home/andrea.leoni-1/Charm/data
 export DATA_FILE=retail.dat
 export DATA_CHARACTERS=0
+export MIN_SUPPORT=5000
 
-echo "Starting execution..."
-mpiexec -n 2 $(pwd)/Charm/out/charm_parallel_cluster
+mpiexec -n 2 $(pwd)/Charm/out/charm_parallel
