@@ -15,7 +15,8 @@ module load mpich-3.2
 
 export CHARM_OPENMP=true
 export DATA_PATH=/home/andrea.leoni-1/Charm/data
-export DATA_FILE=small_transactions.dat
+export DATA_FILE=retail.dat
+export DATA_CHARACTERS=false
 
 echo "Starting execution..."
 mpiexec -n 2 $(pwd)/Charm/out/charm_parallel_cluster
