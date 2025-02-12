@@ -51,6 +51,7 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-# ignore files in out
-out/
 .vscode/
+
+**.sh.e**
+**.sh.o**
