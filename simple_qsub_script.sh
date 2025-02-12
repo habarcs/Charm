@@ -11,10 +11,11 @@
 # set user (optional)
 #PBS -M andrea.leoni-1@unitn.it
 
-module purge
 module load mpich-3.2
 
-export OMP_NUM_THREADS=2
+export CHARM_OPENMP=true
+export DATA_PATH=/home/andrea.leoni-1/Charm/data
+export DATA_FILE=small_transactions.dat
 
 echo "Starting execution..."
 mpiexec -n 2 $(pwd)/Charm/out/charm_parallel_cluster
