@@ -27,12 +27,12 @@ int main() {
     return -1;
   } else {
     asprintf(&data_path_file, "%s/%s", data_path, data_file);
-    printf("Data file path is %s", data_path_file);
   }
 
-  bool characters = getenv("DATA_CHARACTERS");
-  if (characters == NULL) {
-    characters = true;
+  char *env_char = getenv("DATA_CHARACTERS");
+  bool characters = true;
+  if (env_char != NULL) {
+    characters = atoi(env_char) != 0;
   }
 
   // get and divide the dataset
