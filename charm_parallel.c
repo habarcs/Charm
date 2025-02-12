@@ -1,4 +1,5 @@
 #include "charm_functions.h"
+#include "itarray.h"
 #include "utils.h"
 #include <mpi.h>
 #include <stdio.h>
@@ -48,9 +49,13 @@ int main() {
   Set *transactions = read_sets_from_file_start_end(
       data_path_file, &num_transactions, rank, size,
       &partition_size, &local_size, characters);
-  printf("Process %d has %d transactions\n", rank, local_size);
 
-  charm(transactions, local_size, min_support);
+  int local_min_support = min_support / size;
+
+  int tid_start = rank * partition_size + 1;
+  ITArray C = charm(transactions, local_size, local_min_support, tid_start);
+
+  print_closed_itemsets(&C, true);
 
   free(transactions);
 

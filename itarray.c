@@ -103,9 +103,7 @@ void itarray_remove_subsumed_sets(ITArray *C) {
 void itarray_replace_with(ITArray *P, const Set *it, const Set *with) {
   for (int i = 0; i < P->size; i++) {
     if (is_subset(it, &P->itpairs[i].itemset)) {
-      for (int j = 0; j < with->size; j++) {
-        set_add(&P->itpairs[0].itemset, with->set[j]);
-      }
+      set_add_all(with, &P->itpairs[i].itemset);
     }
   }
 }
@@ -127,5 +125,35 @@ void print_closed_itemsets(ITArray *C, bool character) {
       printf("%d ", C->itpairs[i].tidset.set[j]);
     }
     printf("\n");
+  }
+}
+
+void merge_closed_itemsets(const ITArray **Cs, int size, ITArray *C,
+                           int min_support) {
+  itarray_init(C, size * 10);
+
+  for (int i = 0; i < size; i++) {
+    for (int j = 0; j < Cs[i]->size; j++) {
+      bool already_in = false;
+      for (int k = 0; k < C->size; k++) {
+        if (sets_equal(&Cs[i]->itpairs[j].itemset, &C->itpairs[k].itemset)) {
+          already_in = true;
+          set_add_all(&Cs[i]->itpairs[j].tidset, &C->itpairs[k].tidset);
+        }
+      }
+      if (!already_in) {
+        itarray_add(C, &Cs[i]->itpairs[j].itemset, &Cs[i]->itpairs[j].tidset);
+      }
+    }
+  }
+
+  itarray_remove_subsumed_sets(C);
+
+  // remove low support elements
+  for (int i = 0; i < C->size; i++) {
+    if (C->itpairs[i].tidset.size < min_support) {
+      itarray_remove(C, i);
+      i--;
+    }
   }
 }
