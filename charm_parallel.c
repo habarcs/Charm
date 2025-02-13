@@ -55,9 +55,16 @@ int main() {
   int tid_start = rank * partition_size + 1;
   ITArray C = charm(transactions, local_size, local_min_support, tid_start);
 
+  free(transactions);
+  
   print_closed_itemsets(&C, true);
 
-  free(transactions);
+  int *buffer, bufsize;
+  serialize_itarray(&C, &buffer, &bufsize);
+
+  ITArray deserialized = {{0}};
+  int *des_buffer = (int *)malloc(bufsize * sizeof(int));
+  deserialize_itarray(buffer, &deserialized);
 
   end_time = MPI_Wtime();
   total_time = end_time - start_time;

@@ -105,3 +105,20 @@ void print_closed_itemsets(ITArray *C, bool character);
 */
 void merge_closed_itemsets(const ITArray **Cs, int size, ITArray *C,
                            int min_support);
+
+
+/*
+  serialize an ITArray to an integer array ready to send.
+  data is the ITArray to serialize
+  buffer is the output array
+  ([number of pairs, number of items in first itemset, items, number of tids in first tidset, tids, ...])
+  bufsize is the size of the output array
+*/
+void serialize_itarray(const ITArray *data, int **buffer, int *bufsize);
+
+/*
+  deserialize a buffer of integers to an ITArray.
+  buffer is the integers array
+  data is the output ITArray
+*/
+void deserialize_itarray(int *buffer, ITArray *data);

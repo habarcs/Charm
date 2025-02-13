@@ -157,3 +157,56 @@ void merge_closed_itemsets(const ITArray **Cs, int size, ITArray *C,
     }
   }
 }
+
+void serialize_itarray(const ITArray *data, int **buffer, int *bufsize) {
+  int total_size = 1 + (data->size * 2);
+  for (int i = 0; i < data->size; i++) {
+    total_size += data->itpairs[i].itemset.size;
+    total_size += data->itpairs[i].tidset.size;
+  }
+
+  *buffer = (int *)malloc(total_size * sizeof(int));
+  *bufsize = total_size;
+
+  int index = 0;
+  (*buffer)[index++] = data->size;
+
+  for (int i = 0; i < data->size; i++) {
+    ITPair *pair = &data->itpairs[i];
+
+    (*buffer)[index++] = pair->itemset.size;
+    for (int j = 0; j < pair->itemset.size; j++) {
+      (*buffer)[index++] = pair->itemset.set[j];
+    }
+
+    (*buffer)[index++] = pair->tidset.size;
+    for (int j = 0; j < pair->tidset.size; j++) {
+      (*buffer)[index++] = pair->tidset.set[j];
+    }
+  }
+}
+
+void deserialize_itarray(int *buffer, ITArray *data) {
+  int index = 0;
+  data->size = buffer[index++];
+
+  data->itpairs = (ITPair *)malloc(data->size * sizeof(ITPair));
+
+  for (int i = 0; i < data->size; i++) {
+    ITPair *pair = &data->itpairs[i];
+
+    pair->itemset.size = buffer[index];
+    pair->itemset.cap = buffer[index++] + 1;
+    pair->itemset.set = (int *)malloc(pair->itemset.size * sizeof(int));
+    for (int j = 0; j < pair->itemset.size; j++) {
+      pair->itemset.set[j] = buffer[index++];
+    }
+
+    pair->tidset.size = buffer[index];
+    pair->tidset.cap = buffer[index++] + 1;
+    pair->tidset.set = (int *)malloc(pair->tidset.size * sizeof(int));
+    for (int j = 0; j < pair->tidset.size; j++) {
+      pair->tidset.set[j] = buffer[index++];
+    }
+  }
+}
