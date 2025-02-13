@@ -53,35 +53,49 @@ int main() {
   int local_min_support = min_support / size;
 
   int tid_start = rank * partition_size + 1;
-  ITArray C = charm(transactions, local_size, local_min_support, tid_start);
+  ITArray local_C = charm(transactions, local_size, local_min_support, tid_start);
 
   free(transactions);
 
   if (rank == 0) {
-    // receive buffers
-    int received_buffers = 0;
-    ITArray closed_itemsets = C;
+    int received_buffers = 0, buffer_size = 0;
+    int *buffer = NULL;
+    ITArray **Cs = (ITArray **)malloc(size * sizeof(ITArray *));
+    Cs[0] = (ITArray *)malloc(sizeof(ITArray));
+    Cs[0]->cap = local_C.cap;
+    Cs[0]->size = local_C.size;
+    Cs[0]->itpairs = local_C.itpairs;
     while (received_buffers < size - 1) {
       MPI_Status status;
+      MPI_Probe(MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
       int bufsize, source;
       MPI_Get_count(&status, MPI_INT, &bufsize);
       source = status.MPI_SOURCE;
-      int *buffer = (int *)malloc(bufsize * sizeof(int));
+      if (buffer_size < bufsize) {
+        free(buffer);
+        buffer = (int *)malloc(bufsize * sizeof(int));
+        buffer_size = bufsize;
+      }
       MPI_Recv(buffer, bufsize, MPI_INT, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      ITArray local_C = {{0}};
-      deserialize_ITArray(buffer, local_C);
-      // TODO
-      // merge_closed_itemsets(...)
-      received_buffers++;
+      Cs[++received_buffers] = (ITArray *)malloc(sizeof(ITArray));
+      deserialize_itarray(buffer, Cs[received_buffers]);
     }
+    free(buffer);
+    ITArray C;
+    merge_closed_itemsets((const ITArray **)Cs, size, &C, min_support);
+    for (int i = 0; i < size; i++) {
+      itarray_free(Cs[i]);
+      free(Cs[i]);
+    }
+    free(Cs);
+
+    print_closed_itemsets(&C, true);
   } else {
-    // send your buffer to process 0
     int *buffer, bufsize;
-    serialize_itarray(&C, &buffer, &bufsize);
+    serialize_itarray(&local_C, &buffer, &bufsize);
     MPI_Send(buffer, bufsize, MPI_INT, 0, 0, MPI_COMM_WORLD);
+    free(buffer);
   }
-  
-  print_closed_itemsets(&C, true);
 
   end_time = MPI_Wtime();
   total_time = end_time - start_time;
