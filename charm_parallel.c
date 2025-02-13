@@ -56,15 +56,32 @@ int main() {
   ITArray C = charm(transactions, local_size, local_min_support, tid_start);
 
   free(transactions);
+
+  if (rank == 0) {
+    // receive buffers
+    int received_buffers = 0;
+    ITArray closed_itemsets = C;
+    while (received_buffers < size - 1) {
+      MPI_Status status;
+      int bufsize, source;
+      MPI_Get_count(&status, MPI_INT, &bufsize);
+      source = status.MPI_SOURCE;
+      int *buffer = (int *)malloc(bufsize * sizeof(int));
+      MPI_Recv(buffer, bufsize, MPI_INT, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      ITArray local_C = {{0}};
+      deserialize_ITArray(buffer, local_C);
+      // TODO
+      // merge_closed_itemsets(...)
+      received_buffers++;
+    }
+  } else {
+    // send your buffer to process 0
+    int *buffer, bufsize;
+    serialize_itarray(&C, &buffer, &bufsize);
+    MPI_Send(buffer, bufsize, MPI_INT, 0, 0, MPI_COMM_WORLD);
+  }
   
   print_closed_itemsets(&C, true);
-
-  int *buffer, bufsize;
-  serialize_itarray(&C, &buffer, &bufsize);
-
-  ITArray deserialized = {{0}};
-  int *des_buffer = (int *)malloc(bufsize * sizeof(int));
-  deserialize_itarray(buffer, &deserialized);
 
   end_time = MPI_Wtime();
   total_time = end_time - start_time;
