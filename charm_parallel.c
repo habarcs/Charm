@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int main() {
+int main(void) {
 
   int rank = 0, size = 0;
   MPI_Init(NULL, NULL);
@@ -47,13 +47,14 @@ int main() {
 
   int num_transactions = 0, partition_size = 0, local_size = 0;
   Set *transactions = read_sets_from_file_start_end(
-      data_path_file, &num_transactions, rank, size,
-      &partition_size, &local_size, characters);
+      data_path_file, &num_transactions, rank, size, &partition_size,
+      &local_size, characters);
 
   int local_min_support = min_support / size;
 
   int tid_start = rank * partition_size + 1;
-  ITArray local_C = charm(transactions, local_size, local_min_support, tid_start);
+  ITArray local_C =
+      charm(transactions, local_size, local_min_support, tid_start);
 
   free(transactions);
 
@@ -76,7 +77,8 @@ int main() {
         buffer = (int *)malloc(bufsize * sizeof(int));
         buffer_size = bufsize;
       }
-      MPI_Recv(buffer, bufsize, MPI_INT, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      MPI_Recv(buffer, bufsize, MPI_INT, source, 0, MPI_COMM_WORLD,
+               MPI_STATUS_IGNORE);
       Cs[++received_buffers] = (ITArray *)malloc(sizeof(ITArray));
       deserialize_itarray(buffer, Cs[received_buffers]);
     }

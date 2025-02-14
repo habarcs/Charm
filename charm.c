@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-int main() {
+int main(void) {
   printf("Max Threads: %d\n", omp_get_max_threads());
   printf("Maximum length for a dataset line is %d\n", MAX_LINE_LENGTH);
   printf("Maximum number of transactions is %d\n", MAX_TRANSACTIONS);
