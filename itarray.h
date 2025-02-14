@@ -72,7 +72,13 @@ bool itarray_is_itpair_subsumed(ITArray *C, const ITPair *itpair);
   removes all itpairs from C if they are already subsumed by other itpairs in C
   C has to be a valid pointer to ITArray
 */
-void itarray_remove_subsumed_sets(ITArray *C);
+void itarray_remove_subsumed_pairs(ITArray *C);
+
+/*
+  removes all itpairs from C if they have low support
+  C has to be a valid pointer to ITArray
+*/
+void itarray_remove_low_suport_pairs(ITArray *C, int min_support);
 
 /*
   removes itpair at position pos from P

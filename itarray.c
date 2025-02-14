@@ -91,9 +91,18 @@ void itarray_remove(ITArray *P, int pos) {
   // TODO maybe shrink array if size is much lower then cap
 }
 
-void itarray_remove_subsumed_sets(ITArray *C) {
+void itarray_remove_subsumed_pairs(ITArray *C) {
   for (int i = 0; i < C->size; i++) {
     if (itarray_is_itpair_subsumed(C, &C->itpairs[i])) {
+      itarray_remove(C, i);
+      i--;
+    }
+  }
+}
+
+void itarray_remove_low_suport_pairs(ITArray *C, int min_support) {
+  for (int i = 0; i < C->size; i++) {
+    if (C->itpairs[i].tidset.size < min_support) {
       itarray_remove(C, i);
       i--;
     }
@@ -128,13 +137,14 @@ void print_closed_itemsets(ITArray *C, bool character) {
   }
 }
 
-void merge_closed_itemsets(const ITArray *from, ITArray *to) {
+void merge_closed_itemsets_into(const ITArray *from, ITArray *to) {
   for (int i = 0; i < from->size; i++) {
     bool already_in = false;
     for (int j = 0; j < to->size; j++) {
       if (sets_equal(&from->itpairs[i].itemset, &to->itpairs[j].itemset)) {
         already_in = true;
         set_add_all(&from->itpairs[i].tidset, &to->itpairs[j].tidset);
+        break;
       }
     }
     if (!already_in) {

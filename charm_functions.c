@@ -137,12 +137,7 @@ ITArray charm(Set *transactions, int num_transactions, int min_support,
       }
     }
   }
-  for (int i = 0; i < P.size; i++) {
-    if (P.itpairs[i].tidset.size < min_support) {
-      itarray_remove(&P, i);
-      i--;
-    }
-  }
+  itarray_remove_low_suport_pairs(&P, min_support);
   qsort(P.itpairs, P.size, sizeof(ITPair), compare_itpairs);
   // qsort(P.itpairs, P.size, sizeof(ITPair), compare_itpairs_support);
 
@@ -156,7 +151,7 @@ ITArray charm(Set *transactions, int num_transactions, int min_support,
     printf("Running Parallel\n");
     ITPair root = {{0}, {0}};
     enumerate_frequent(&root, &P, min_support, &C, 0);
-    itarray_remove_subsumed_sets(&C);
+    itarray_remove_subsumed_pairs(&C);
   } else {
     printf("Running Sequentially\n");
     charm_extend(&P, &C, min_support);

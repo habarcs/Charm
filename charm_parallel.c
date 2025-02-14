@@ -21,13 +21,13 @@ int main(void) {
 
   char *data_path = getenv("DATA_PATH");
   char *data_file = getenv("DATA_FILE");
-  char *data_path_file;
+  char data_path_file[1000];
 
   if (data_path == NULL || data_file == NULL) {
     fprintf(stderr, "Data path and file must be defined!");
     MPI_Abort(MPI_COMM_WORLD, -1);
   } else {
-    asprintf(&data_path_file, "%s/%s", data_path, data_file);
+    sprintf(data_path_file, "%s/%s", data_path, data_file);
   }
 
   char *env_char = getenv("DATA_CHARACTERS");
@@ -53,16 +53,18 @@ int main(void) {
   int local_min_support = min_support / size;
 
   int tid_start = rank * partition_size + 1;
+  printf("Rank %d has tids start from %d\n", rank, tid_start);
   ITArray local_C =
       charm(transactions, local_size, local_min_support, tid_start);
 
-  for (int i = 0; i < num_transactions; i++) {
+  for (int i = 0; i < local_size; i++) {
     set_free(&transactions[i]);
   }
   free(transactions);
 
   if (rank + 1 <= size / 2) {
     int num_senders = (rank + 1) * 2 == size ? 1 : 2;
+    printf("Rank %d will receive %d messages\n", rank, num_senders);
     int *buffers[2] = {0};
     for (int i = 0; i < num_senders; i++) {
       MPI_Status status;
@@ -76,7 +78,7 @@ int main(void) {
       }
       MPI_Recv(buffers[i], message_size, MPI_INT, status.MPI_SOURCE,
                status.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      printf("Process %d received message from process %d\n", rank,
+      printf("Rank %d received message from rank %d\n", rank,
              status.MPI_SOURCE);
       ITArray sent;
       deserialize_itarray(buffers[i], &sent);
@@ -84,15 +86,20 @@ int main(void) {
       itarray_free(&sent);
       free(buffers[i]);
     }
+  } else {
+    printf("Rank %d will not receive a message\n", rank);
   }
 
   if (rank != 0) {
     int *buffer, bufsize;
     serialize_itarray(&local_C, &buffer, &bufsize);
-
-    MPI_Send(buffer, bufsize, MPI_INT, (rank + 1) / 2, 0, MPI_COMM_WORLD);
+    int target_rank = (rank - 1) / 2;
+    printf("Rank %d is sending message to rank %d\n", rank, target_rank);
+    MPI_Send(buffer, bufsize, MPI_INT, target_rank, 0, MPI_COMM_WORLD);
     free(buffer);
   } else {
+    itarray_remove_low_suport_pairs(&local_C, min_support);
+    itarray_remove_subsumed_pairs(&local_C);
     print_closed_itemsets(&local_C, characters);
   }
 
