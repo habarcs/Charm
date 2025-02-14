@@ -140,16 +140,24 @@ void print_closed_itemsets(ITArray *C, bool character) {
 void merge_closed_itemsets_into(const ITArray *from, ITArray *to) {
   for (int i = 0; i < from->size; i++) {
     bool already_in = false;
+    Set tidset;
+    set_copy(&from->itpairs[i].tidset, &tidset);
     for (int j = 0; j < to->size; j++) {
-      if (sets_equal(&from->itpairs[i].itemset, &to->itpairs[j].itemset)) {
-        already_in = true;
+      if (is_subset(&to->itpairs[j].itemset, &from->itpairs[i].itemset)) {
         set_add_all(&from->itpairs[i].tidset, &to->itpairs[j].tidset);
-        break;
+      }
+      if (sets_equal(&to->itpairs[j].itemset, &from->itpairs[i].itemset)) {
+        set_add_all(&from->itpairs[i].tidset, &to->itpairs[j].tidset);
+        already_in = true;
+      }
+      if (is_subset(&from->itpairs[i].itemset, &to->itpairs[j].itemset)) {
+        set_add_all(&to->itpairs[j].tidset, &tidset);
       }
     }
     if (!already_in) {
-      itarray_add(to, &from->itpairs[i].itemset, &from->itpairs[i].tidset);
+      itarray_add(to, &from->itpairs[i].itemset, &tidset);
     }
+    set_free(&tidset);
   }
 }
 

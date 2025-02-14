@@ -82,7 +82,18 @@ int main(void) {
              status.MPI_SOURCE);
       ITArray sent;
       deserialize_itarray(buffers[i], &sent);
+      if (rank == 1) {
+        printf("Local C:\n");
+        print_closed_itemsets(&local_C, characters);
+
+        printf("Received C:\n");
+        print_closed_itemsets(&sent, characters);
+      }
       merge_closed_itemsets_into(&sent, &local_C);
+      if (rank == 1) {
+        printf("After merge:\n");
+        print_closed_itemsets(&local_C, characters);
+      }
       itarray_free(&sent);
       free(buffers[i]);
     }
