@@ -146,7 +146,13 @@ ITArray charm(Set *transactions, int num_transactions, int min_support,
   qsort(P.itpairs, P.size, sizeof(ITPair), compare_itpairs);
   // qsort(P.itpairs, P.size, sizeof(ITPair), compare_itpairs_support);
 
-  if (getenv("CHARM_OPENMP")) {
+  bool openmp = false;
+  char *openmp_env = getenv("CHARM_OPENMP");
+  if (openmp_env != NULL) {
+    openmp = atoi(openmp_env) != 0;
+  }
+
+  if (openmp) {
     printf("Running Parallel\n");
     ITPair root = {{0}, {0}};
     enumerate_frequent(&root, &P, min_support, &C, 0);
