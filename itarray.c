@@ -188,25 +188,27 @@ void serialize_itarray(const ITArray *data, int **buffer, int *bufsize) {
 
 void deserialize_itarray(int *buffer, ITArray *data) {
   int index = 0;
-  data->size = buffer[index++];
+  int num_itpairs = buffer[index++];
 
-  data->itpairs = (ITPair *)malloc(data->size * sizeof(ITPair));
+  itarray_init(data, num_itpairs);
 
-  for (int i = 0; i < data->size; i++) {
-    ITPair *pair = &data->itpairs[i];
-
-    pair->itemset.size = buffer[index];
-    pair->itemset.cap = buffer[index++] + 1;
-    pair->itemset.set = (int *)malloc(pair->itemset.size * sizeof(int));
-    for (int j = 0; j < pair->itemset.size; j++) {
-      pair->itemset.set[j] = buffer[index++];
+  for (int i = 0; i < num_itpairs; i++) {
+    int itemset_size = buffer[index++];
+    Set itemset;
+    set_init(&itemset, itemset_size);
+    for (int j = 0; j < itemset_size; j++) {
+      set_add(&itemset, buffer[index++]);
     }
 
-    pair->tidset.size = buffer[index];
-    pair->tidset.cap = buffer[index++] + 1;
-    pair->tidset.set = (int *)malloc(pair->tidset.size * sizeof(int));
-    for (int j = 0; j < pair->tidset.size; j++) {
-      pair->tidset.set[j] = buffer[index++];
+    int tidset_size = buffer[index++];
+    Set tidset;
+    set_init(&tidset, tidset_size);
+    for (int j = 0; j < tidset_size; j++) {
+      set_add(&tidset, buffer[index++]);
     }
+
+    itarray_add(data, &itemset, &tidset);
+    set_free(&itemset);
+    set_free(&tidset);
   }
 }
