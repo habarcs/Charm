@@ -73,7 +73,7 @@ int main(void) {
   }
   free(transactions);
 
-  int num_passes = 1;
+  int num_passes = 0;
   int world_size = size;
   while (world_size / 2 > (rank + 1) * num_passes) {
     num_passes++;
