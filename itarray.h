@@ -106,7 +106,7 @@ void print_closed_itemsets(ITArray *C, bool character);
   this functions merges from ITArray into to
   both to and from have to be valid pointers to ITArray
 */
-void merge_closed_itemsets_into(ITArray *from, ITArray *to);
+void merge_closed_itemsets_into(ITArray *from, ITArray *to, bool add_back);
 
 /*
   serialize an ITArray to an integer array ready to send.

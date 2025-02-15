@@ -81,7 +81,7 @@ int main(void) {
              status.MPI_SOURCE);
       ITArray sent;
       deserialize_itarray(buffers[i], &sent);
-      merge_closed_itemsets_into(&sent, &local_C);
+      merge_closed_itemsets_into(&sent, &local_C, true);
       itarray_free(&sent);
       free(buffers[i]);
     }
