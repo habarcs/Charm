@@ -137,27 +137,47 @@ void print_closed_itemsets(ITArray *C, bool character) {
   }
 }
 
-void merge_closed_itemsets_into(const ITArray *from, ITArray *to) {
+void add_back_all_frequent_itemsets(ITArray *C) {
+  for (int i = 0; i < C->size; i++) {
+    Set *itemset = &C->itpairs[i].itemset;
+    Set *tidset = &C->itpairs[i].tidset;
+    int num_subsets = 1 << itemset->size;
+    // to get the subsets we use bit manipulation
+    // we skip the first subset, because it is the empty set
+    // we skip the last subset, because it is the full set
+    for (int j = 1; j < num_subsets - 1; j++) {
+      Set subset;
+      set_init(&subset, 1);
+      for (int k = 0; k < itemset->size; k++) {
+        if ((j & (1 << k)) != 0) {
+          set_add(&subset, itemset->set[k]);
+        }
+      }
+      itarray_add(C, &subset, tidset);
+      set_free(&subset);
+    }
+  }
+}
+
+void merge_closed_itemsets_into(ITArray *from, ITArray *to) {
+  add_back_all_frequent_itemsets(from);
+  add_back_all_frequent_itemsets(to);
   for (int i = 0; i < from->size; i++) {
+    Set *from_itemset = &from->itpairs[i].itemset;
+    Set *from_tidset = &from->itpairs[i].tidset;
     bool already_in = false;
-    Set tidset;
-    set_copy(&from->itpairs[i].tidset, &tidset);
     for (int j = 0; j < to->size; j++) {
-      if (is_subset(&to->itpairs[j].itemset, &from->itpairs[i].itemset)) {
-        set_add_all(&from->itpairs[i].tidset, &to->itpairs[j].tidset);
-      }
-      if (sets_equal(&to->itpairs[j].itemset, &from->itpairs[i].itemset)) {
-        set_add_all(&from->itpairs[i].tidset, &to->itpairs[j].tidset);
+      Set *to_itemset = &to->itpairs[j].itemset;
+      Set *to_tidset = &to->itpairs[j].tidset;
+      if (sets_equal(from_itemset, to_itemset)) {
+        set_add_all(from_tidset, to_tidset);
         already_in = true;
-      }
-      if (is_subset(&from->itpairs[i].itemset, &to->itpairs[j].itemset)) {
-        set_add_all(&to->itpairs[j].tidset, &tidset);
+        break;
       }
     }
     if (!already_in) {
-      itarray_add(to, &from->itpairs[i].itemset, &tidset);
+      itarray_add(to, from_itemset, from_tidset);
     }
-    set_free(&tidset);
   }
 }
 
