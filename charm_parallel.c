@@ -24,7 +24,7 @@ int main(void) {
   char data_path_file[1000];
 
   if (data_path == NULL || data_file == NULL) {
-    fprintf(stderr, "Data path and file must be defined!");
+    fprintf(stderr, "Data path and file must be defined!\n");
     MPI_Abort(MPI_COMM_WORLD, -1);
   } else {
     sprintf(data_path_file, "%s/%s", data_path, data_file);
@@ -40,7 +40,7 @@ int main(void) {
   char *env_min_support = getenv("MIN_SUPPORT");
   int min_support = -1;
   if (env_min_support == NULL) {
-    fprintf(stderr, "Min support is missing but required!");
+    fprintf(stderr, "Min support is missing but required!\n");
     MPI_Abort(MPI_COMM_WORLD, -1);
   } else {
     min_support = atoi(env_min_support);
@@ -73,6 +73,12 @@ int main(void) {
   }
   free(transactions);
 
+  int num_passes = 1;
+  int world_size = size;
+  while (world_size / 2 > (rank + 1) * num_passes) {
+    num_passes++;
+  }
+
   if (rank + 1 <= size / 2) {
     int num_senders = (rank + 1) * 2 == size ? 1 : 2;
     printf("Rank %d will receive %d messages\n", rank, num_senders);
@@ -97,6 +103,8 @@ int main(void) {
       itarray_free(&sent);
       free(buffers[i]);
     }
+    itarray_remove_low_suport_pairs(&local_C, local_min_support * (1 << num_passes));
+    itarray_remove_subsumed_pairs(&local_C);
   } else {
     printf("Rank %d will not receive a message\n", rank);
   }
