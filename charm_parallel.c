@@ -28,6 +28,7 @@ int main(void) {
     MPI_Abort(MPI_COMM_WORLD, -1);
   } else {
     sprintf(data_path_file, "%s/%s", data_path, data_file);
+    printf("Data are taken from %s", data_path_file);
   }
 
   char *env_char = getenv("DATA_CHARACTERS");
@@ -43,6 +44,7 @@ int main(void) {
     MPI_Abort(MPI_COMM_WORLD, -1);
   } else {
     min_support = atoi(env_min_support);
+    printf("Min support is %d", min_support);
   }
 
   int num_transactions = 0, partition_size = 0, local_size = 0;
