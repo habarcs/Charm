@@ -40,12 +40,12 @@ int count_lines_in_file(const char *filename) {
 
 Set *read_sets_from_file_start_end(const char *filename, int *num_transactions,
                                    int rank, int size, int *partition_size,
-                                   int *local_size, bool characters) {
+                                   int *local_size, bool characters, int max_transactions) {
   *num_transactions = count_lines_in_file(filename);
   printf("Number of transactions in the dataset: %d\n", *num_transactions);
-  if (*num_transactions > MAX_TRANSACTIONS) {
-    printf("Max number of transactions exceeded\n");
-    *num_transactions = MAX_TRANSACTIONS;
+  if (*num_transactions > max_transactions) {
+    printf("Max number of transactions exceeded. Considering only first %d transactions\n", max_transactions);
+    *num_transactions = max_transactions;
   }
 
   *partition_size = *num_transactions / size;
@@ -108,12 +108,12 @@ Set *read_sets_from_file_start_end(const char *filename, int *num_transactions,
 }
 
 Set *read_sets_from_file(const char *filename, int *num_transactions,
-                         bool characters) {
+                         bool characters, int max_transactions) {
   *num_transactions = count_lines_in_file(filename);
   printf("Number of transactions in the dataset: %d\n", *num_transactions);
-  if (*num_transactions > MAX_TRANSACTIONS) {
+  if (*num_transactions > max_transactions) {
     printf("Max number of transactions exceeded\n");
-    *num_transactions = MAX_TRANSACTIONS;
+    *num_transactions = max_transactions;
   }
 
   Set *transactions = malloc(*num_transactions * sizeof(Set));

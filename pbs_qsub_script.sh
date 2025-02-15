@@ -17,6 +17,7 @@ export CHARM_OPENMP=0
 export DATA_PATH=/home/andrea.leoni-1/Charm/data
 export DATA_FILE=retail.dat
 export DATA_CHARACTERS=0
-export MIN_SUPPORT=5000
+export MIN_SUPPORT=10000
+export MAX_TRANSACTIONS=20000
 
 mpiexec -n 1 $(pwd)/Charm/out/charm_parallel
