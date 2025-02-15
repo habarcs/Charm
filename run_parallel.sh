@@ -2,4 +2,4 @@
 SCRIPT=$(realpath "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 "${SCRIPTPATH}/build_parallel.sh"
-mpiexec -n 2 "${SCRIPTPATH}/out/charm_parallel"
+mpiexec -n 4 "${SCRIPTPATH}/out/charm_parallel"

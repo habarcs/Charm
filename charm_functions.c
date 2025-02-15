@@ -72,7 +72,7 @@ void enumerate_frequent(const ITPair *P, const ITArray *P_children,
                         int min_support, ITArray *C, int depth) {
 #pragma omp parallel for schedule(guided)
   for (int i = 0; i < P_children->size; i++) {
-    ITPair Pi = {{0}};
+    ITPair Pi = {{0}, {0}};
     set_union(&P->itemset, &P_children->itpairs[i].itemset, &Pi.itemset);
     if (depth != 0) {
       set_intersect(&P->tidset, &P_children->itpairs[i].tidset, &Pi.tidset);
@@ -137,20 +137,21 @@ ITArray charm(Set *transactions, int num_transactions, int min_support,
       }
     }
   }
-  for (int i = 0; i < P.size; i++) {
-    if (P.itpairs[i].tidset.size < min_support) {
-      itarray_remove(&P, i);
-      i--;
-    }
-  }
+  itarray_remove_low_suport_pairs(&P, min_support);
   qsort(P.itpairs, P.size, sizeof(ITPair), compare_itpairs);
   // qsort(P.itpairs, P.size, sizeof(ITPair), compare_itpairs_support);
 
-  if (getenv("CHARM_OPENMP")) {
+  bool openmp = false;
+  char *openmp_env = getenv("CHARM_OPENMP");
+  if (openmp_env != NULL) {
+    openmp = atoi(openmp_env) != 0;
+  }
+
+  if (openmp) {
     printf("Running Parallel\n");
-    ITPair root = {{0}};
+    ITPair root = {{0}, {0}};
     enumerate_frequent(&root, &P, min_support, &C, 0);
-    itarray_remove_subsumed_sets(&C);
+    itarray_remove_subsumed_pairs(&C);
   } else {
     printf("Running Sequentially\n");
     charm_extend(&P, &C, min_support);

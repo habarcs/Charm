@@ -1,5 +1,4 @@
 #include "utils.h"
-#include "itarray.h"
 #include "set.h"
 #include <stdio.h>
 #include <stdlib.h>

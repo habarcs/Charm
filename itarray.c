@@ -91,9 +91,18 @@ void itarray_remove(ITArray *P, int pos) {
   // TODO maybe shrink array if size is much lower then cap
 }
 
-void itarray_remove_subsumed_sets(ITArray *C) {
+void itarray_remove_subsumed_pairs(ITArray *C) {
   for (int i = 0; i < C->size; i++) {
     if (itarray_is_itpair_subsumed(C, &C->itpairs[i])) {
+      itarray_remove(C, i);
+      i--;
+    }
+  }
+}
+
+void itarray_remove_low_suport_pairs(ITArray *C, int min_support) {
+  for (int i = 0; i < C->size; i++) {
+    if (C->itpairs[i].tidset.size < min_support) {
       itarray_remove(C, i);
       i--;
     }
@@ -128,32 +137,52 @@ void print_closed_itemsets(ITArray *C, bool character) {
   }
 }
 
-void merge_closed_itemsets(const ITArray **Cs, int size, ITArray *C,
-                           int min_support) {
-  itarray_init(C, size * 10);
-
-  for (int i = 0; i < size; i++) {
-    for (int j = 0; j < Cs[i]->size; j++) {
-      bool already_in = false;
-      for (int k = 0; k < C->size; k++) {
-        if (sets_equal(&Cs[i]->itpairs[j].itemset, &C->itpairs[k].itemset)) {
-          already_in = true;
-          set_add_all(&Cs[i]->itpairs[j].tidset, &C->itpairs[k].tidset);
+void add_back_all_frequent_itemsets(ITArray *C) {
+  ITArray temp;
+  itarray_init(&temp, 1);
+  for (int i = 0; i < C->size; i++) {
+    Set *itemset = &C->itpairs[i].itemset;
+    Set *tidset = &C->itpairs[i].tidset;
+    int num_subsets = 1 << itemset->size;
+    // to get the subsets we use bit manipulation
+    // we skip the first subset, because it is the empty set
+    // we skip the last subset, because it is the full set
+    for (int j = 1; j < num_subsets - 1; j++) {
+      Set subset;
+      set_init(&subset, 1);
+      for (int k = 0; k < itemset->size; k++) {
+        if ((j & (1 << k)) != 0) {
+          set_add(&subset, itemset->set[k]);
         }
       }
-      if (!already_in) {
-        itarray_add(C, &Cs[i]->itpairs[j].itemset, &Cs[i]->itpairs[j].tidset);
-      }
+      itarray_add(&temp, &subset, tidset);
+      set_free(&subset);
     }
   }
+  merge_closed_itemsets_into(&temp, C, false);
+  itarray_free(&temp);
+}
 
-  itarray_remove_subsumed_sets(C);
-
-  // remove low support elements
-  for (int i = 0; i < C->size; i++) {
-    if (C->itpairs[i].tidset.size < min_support) {
-      itarray_remove(C, i);
-      i--;
+void merge_closed_itemsets_into(ITArray *from, ITArray *to, bool add_back) {
+  if (add_back) {
+    add_back_all_frequent_itemsets(from);
+    add_back_all_frequent_itemsets(to);
+  }
+  for (int i = 0; i < from->size; i++) {
+    Set *from_itemset = &from->itpairs[i].itemset;
+    Set *from_tidset = &from->itpairs[i].tidset;
+    bool already_in = false;
+    for (int j = 0; j < to->size; j++) {
+      Set *to_itemset = &to->itpairs[j].itemset;
+      Set *to_tidset = &to->itpairs[j].tidset;
+      if (sets_equal(from_itemset, to_itemset)) {
+        set_add_all(from_tidset, to_tidset);
+        already_in = true;
+        break;
+      }
+    }
+    if (!already_in) {
+      itarray_add(to, from_itemset, from_tidset);
     }
   }
 }
@@ -188,25 +217,27 @@ void serialize_itarray(const ITArray *data, int **buffer, int *bufsize) {
 
 void deserialize_itarray(int *buffer, ITArray *data) {
   int index = 0;
-  data->size = buffer[index++];
+  int num_itpairs = buffer[index++];
 
-  data->itpairs = (ITPair *)malloc(data->size * sizeof(ITPair));
+  itarray_init(data, num_itpairs);
 
-  for (int i = 0; i < data->size; i++) {
-    ITPair *pair = &data->itpairs[i];
-
-    pair->itemset.size = buffer[index];
-    pair->itemset.cap = buffer[index++] + 1;
-    pair->itemset.set = (int *)malloc(pair->itemset.size * sizeof(int));
-    for (int j = 0; j < pair->itemset.size; j++) {
-      pair->itemset.set[j] = buffer[index++];
+  for (int i = 0; i < num_itpairs; i++) {
+    int itemset_size = buffer[index++];
+    Set itemset;
+    set_init(&itemset, itemset_size);
+    for (int j = 0; j < itemset_size; j++) {
+      set_add(&itemset, buffer[index++]);
     }
 
-    pair->tidset.size = buffer[index];
-    pair->tidset.cap = buffer[index++] + 1;
-    pair->tidset.set = (int *)malloc(pair->tidset.size * sizeof(int));
-    for (int j = 0; j < pair->tidset.size; j++) {
-      pair->tidset.set[j] = buffer[index++];
+    int tidset_size = buffer[index++];
+    Set tidset;
+    set_init(&tidset, tidset_size);
+    for (int j = 0; j < tidset_size; j++) {
+      set_add(&tidset, buffer[index++]);
     }
+
+    itarray_add(data, &itemset, &tidset);
+    set_free(&itemset);
+    set_free(&tidset);
   }
 }
