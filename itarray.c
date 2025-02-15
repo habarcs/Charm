@@ -138,7 +138,9 @@ void print_closed_itemsets(ITArray *C, bool character) {
 }
 
 void add_back_all_frequent_itemsets(ITArray *C) {
-  for (int i = 0; i < C->size; i++) {
+  int original_size =
+      C->size; // the C size of C will grow as we add back subsets;
+  for (int i = 0; i < original_size; i++) {
     Set *itemset = &C->itpairs[i].itemset;
     Set *tidset = &C->itpairs[i].tidset;
     int num_subsets = 1 << itemset->size;
@@ -153,7 +155,17 @@ void add_back_all_frequent_itemsets(ITArray *C) {
           set_add(&subset, itemset->set[k]);
         }
       }
-      itarray_add(C, &subset, tidset);
+      bool already_in = false;
+      for (int k = 0; k < C->size; k++) {
+        if (sets_equal(&subset, &C->itpairs[k].itemset)) {
+          already_in = true;
+          set_add_all(tidset, &C->itpairs[k].tidset);
+          break;
+        }
+      }
+      if (!already_in) {
+        itarray_add(C, &subset, tidset);
+      }
       set_free(&subset);
     }
   }
