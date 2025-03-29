@@ -120,21 +120,21 @@ void itarray_replace_with(ITArray *P, const Set *it, const Set *with) {
 // we can convert back to char the items
 void print_closed_itemsets(ITArray *C, bool character) {
   printf("%d Closed itemsets found\n", C->size);
-  // for (int i = 0; i < C->size; i++) {
-  //   printf("itemset: ");
-  //   for (int j = 0; j < C->itpairs[i].itemset.size; j++) {
-  //     if (character) {
-  //       printf("%c ", index_to_char(C->itpairs[i].itemset.set[j]));
-  //     } else {
-  //       printf("%d ", C->itpairs[i].itemset.set[j]);
-  //     }
-  //   }
-  //   printf("\t| tids: ");
-  //   for (int j = 0; j < C->itpairs[i].tidset.size; j++) {
-  //     printf("%d ", C->itpairs[i].tidset.set[j]);
-  //   }
-  //   printf("\n");
-  // }
+  for (int i = 0; i < C->size; i++) {
+    printf("itemset: ");
+    for (int j = 0; j < C->itpairs[i].itemset.size; j++) {
+      if (character) {
+        printf("%c ", index_to_char(C->itpairs[i].itemset.set[j]));
+      } else {
+        printf("%d ", C->itpairs[i].itemset.set[j]);
+      }
+    }
+    printf("\t| tids: ");
+    for (int j = 0; j < C->itpairs[i].tidset.size; j++) {
+      printf("%d ", C->itpairs[i].tidset.set[j]);
+    }
+    printf("\n");
+  }
 }
 
 void add_back_all_frequent_itemsets(ITArray *C) {
