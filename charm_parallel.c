@@ -110,9 +110,6 @@ int main(void) {
       printf("Rank %d is sending message to rank %d\n", rank, target_rank);
       MPI_Send(buffer, bufsize, MPI_INT, target_rank, 0, MPI_COMM_WORLD);
       free(buffer);
-    } else {
-      itarray_remove_low_suport_pairs(&local_C, local_min_support);
-      itarray_remove_subsumed_pairs(&local_C);
     }
   }
   if (rank == 0) {
