@@ -64,8 +64,7 @@ int main(void) {
       &local_size, characters, max_transactions);
 
   double increment = (double) min_support / size;
-  printf("increment is %f\n", increment);
-  int initial_min_support = min_support / size;
+  int initial_min_support = floor(increment);
   int local_min_support = initial_min_support;
 
   int tid_start = rank * partition_size + 1;
@@ -98,9 +97,7 @@ int main(void) {
       free(buffer);
 
       double float_min_sup = local_min_support + increment;
-      printf("float_min_sup is %f\n", float_min_sup);
       local_min_support = (int) ceil(float_min_sup);
-      printf("local_min_support is %d\n", local_min_support);
       merge_closed_itemsets_into(&sent, &local_C, true);
       itarray_remove_low_suport_pairs(&local_C, local_min_support);
       itarray_remove_subsumed_pairs(&local_C);
@@ -116,12 +113,13 @@ int main(void) {
       MPI_Send(buffer, bufsize, MPI_INT, target_rank, 0, MPI_COMM_WORLD);
       free(buffer);
     } else {
-      itarray_remove_low_suport_pairs(&local_C, min_support);
+      itarray_remove_low_suport_pairs(&local_C, local_min_support);
       itarray_remove_subsumed_pairs(&local_C);
     }
   }
   if (rank == 0) {
-    printf("RANK 0 local_min_support is %d\n", local_min_support);
+    itarray_remove_low_suport_pairs(&local_C, min_support);
+    itarray_remove_subsumed_pairs(&local_C);
     print_closed_itemsets(&local_C, characters);
   }
 
