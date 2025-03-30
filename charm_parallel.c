@@ -4,7 +4,6 @@
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 
 int main(void) {
 
@@ -63,8 +62,7 @@ int main(void) {
       data_path_file, &num_transactions, rank, size, &partition_size,
       &local_size, characters, max_transactions);
 
-  double increment = (double) min_support / size;
-  int initial_min_support = floor(increment);
+  int initial_min_support = min_support / size;
   int local_min_support = initial_min_support;
 
   int tid_start = rank * partition_size + 1;
@@ -93,11 +91,11 @@ int main(void) {
       printf("Rank %d received message from rank %d\n", rank,
              status.MPI_SOURCE);
       ITArray sent;
-      deserialize_itarray(buffer, &sent);
+      int sent_local_min_support;
+      deserialize_itarray(buffer, &sent, &sent_local_min_support);
       free(buffer);
 
-      double float_min_sup = local_min_support + increment;
-      local_min_support = (int) ceil(float_min_sup);
+      local_min_support = local_min_support + sent_local_min_support;
       merge_closed_itemsets_into(&sent, &local_C, true);
       itarray_remove_low_suport_pairs(&local_C, local_min_support);
       itarray_remove_subsumed_pairs(&local_C);
@@ -107,7 +105,7 @@ int main(void) {
     // sending
     if ((curr_size + 1) / 2 <= rank && rank < curr_size) {
       int *buffer, bufsize;
-      serialize_itarray(&local_C, &buffer, &bufsize);
+      serialize_itarray(&local_C, local_min_support, &buffer, &bufsize);
       int target_rank = curr_size - 1 - rank;
       printf("Rank %d is sending message to rank %d\n", rank, target_rank);
       MPI_Send(buffer, bufsize, MPI_INT, target_rank, 0, MPI_COMM_WORLD);

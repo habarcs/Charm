@@ -115,11 +115,11 @@ void merge_closed_itemsets_into(ITArray *from, ITArray *to, bool add_back);
   ([number of pairs, number of items in first itemset, items, number of tids in
   first tidset, tids, ...]) bufsize is the size of the output array
 */
-void serialize_itarray(const ITArray *data, int **buffer, int *bufsize);
+void serialize_itarray(const ITArray *data, int min_support,int **buffer, int *bufsize);
 
 /*
   deserialize a buffer of integers to an ITArray.
   buffer is the integers array
   data is the output ITArray
 */
-void deserialize_itarray(int *buffer, ITArray *data);
+void deserialize_itarray(int *buffer, ITArray *data, int *min_support);
