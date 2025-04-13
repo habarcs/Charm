@@ -155,6 +155,10 @@ int main(void) {
     num_iteration++;
   }
 
+  if (rank == 0) {
+    print_closed_itemsets(&local_C, characters);
+  }
+
   end_time = MPI_Wtime();
   total_time = end_time - start_time;
   printf("Process %d took %f seconds\n", rank, total_time);
