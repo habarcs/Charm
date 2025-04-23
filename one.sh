@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#PBS -l select=1:ncpus=1:mem=2gb
+#PBS -l select=1:ncpus=1:mem=4gb
 
 # define the queue
 #PBS -q short_cpuQ
