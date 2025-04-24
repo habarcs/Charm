@@ -28,7 +28,7 @@ int main(void) {
     MPI_Abort(MPI_COMM_WORLD, -1);
   } else {
     sprintf(data_path_file, "%s/%s", data_path, data_file);
-    printf("Data are taken from %s\n", data_path_file);
+    // printf("Data are taken from %s\n", data_path_file);
   }
 
   char *env_char = getenv("DATA_CHARACTERS");
@@ -44,7 +44,7 @@ int main(void) {
     MPI_Abort(MPI_COMM_WORLD, -1);
   } else {
     min_support = atoi(env_min_support);
-    printf("Min support is %d\n", min_support);
+    // printf("Min support is %d\n", min_support);
   }
 
   char *env_max_transactions = getenv("MAX_TRANSACTIONS");
@@ -54,7 +54,7 @@ int main(void) {
     MPI_Abort(MPI_COMM_WORLD, -1);
   } else {
     max_transactions = atoi(env_max_transactions);
-    printf("Max number of transactions is %d\n", max_transactions);
+    // printf("Max number of transactions is %d\n", max_transactions);
   }
 
   int num_transactions = 0, partition_size = 0, local_size = 0;
@@ -62,7 +62,8 @@ int main(void) {
       data_path_file, &num_transactions, rank, size, &partition_size,
       &local_size, characters, max_transactions);
 
-  int local_min_support = min_support / size;
+  int initial_min_support = min_support / size;
+  int local_min_support = initial_min_support;
 
   int tid_start = rank * partition_size + 1;
   ITArray local_C =
@@ -73,52 +74,88 @@ int main(void) {
   }
   free(transactions);
 
-  int num_passes = 0;
-  int world_size = size;
-  while (world_size / 2 > (rank + 1) * num_passes) {
-    num_passes++;
-  }
+  // for (int curr_size = size; curr_size > 1; curr_size = (curr_size + 1) / 2) {
+  //   // receive
+  //   if (rank < curr_size / 2) {
+  //     MPI_Status status;
+  //     MPI_Probe(curr_size - 1 - rank, 0, MPI_COMM_WORLD, &status);
+  //     int message_size;
+  //     MPI_Get_count(&status, MPI_INT, &message_size);
+  //     int *buffer = calloc(message_size, sizeof(int));
+  //     if (buffer == NULL) {
+  //       fprintf(stderr, "Failed to allocate memory\n");
+  //       MPI_Abort(MPI_COMM_WORLD, -1);
+  //     }
+  //     MPI_Recv(buffer, message_size, MPI_INT, status.MPI_SOURCE, status.MPI_TAG,
+  //              MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+  //     printf("Rank %d received message from rank %d\n", rank,
+  //            status.MPI_SOURCE);
+  //     ITArray sent;
+  //     int sent_local_min_support;
+  //     deserialize_itarray(buffer, &sent, &sent_local_min_support);
+  //     free(buffer);
 
-  if (rank + 1 <= size / 2) {
-    int num_senders = (rank + 1) * 2 == size ? 1 : 2;
-    printf("Rank %d will receive %d messages\n", rank, num_senders);
-    int *buffers[2] = {0};
-    for (int i = 0; i < num_senders; i++) {
-      MPI_Status status;
-      MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-      int message_size;
-      MPI_Get_count(&status, MPI_INT, &message_size);
-      buffers[i] = calloc(message_size, sizeof(int));
-      if (buffers[i] == NULL) {
-        fprintf(stderr, "Failed to allocate memory\n");
-        MPI_Abort(MPI_COMM_WORLD, -1);
+  //     local_min_support = local_min_support + sent_local_min_support;
+  //     merge_closed_itemsets_into(&sent, &local_C, true);
+  //     itarray_remove_low_suport_pairs(&local_C, local_min_support);
+  //     itarray_remove_subsumed_pairs(&local_C);
+  //     itarray_free(&sent);
+  //   }
+
+  //   // sending
+  //   if ((curr_size + 1) / 2 <= rank && rank < curr_size) {
+  //     int *buffer, bufsize;
+  //     serialize_itarray(&local_C, local_min_support, &buffer, &bufsize);
+  //     int target_rank = curr_size - 1 - rank;
+  //     printf("Rank %d is sending message to rank %d\n", rank, target_rank);
+  //     MPI_Send(buffer, bufsize, MPI_INT, target_rank, 0, MPI_COMM_WORLD);
+  //     free(buffer);
+  //   }
+  // }
+
+  int num_iteration = 1;
+  while ((1 << (num_iteration - 1)) < size) {
+    int distance = 1 << (num_iteration - 1);
+    if (rank % (2 * distance) != 0) {
+      int *buffer, bufsize;
+      serialize_itarray(&local_C, local_min_support, &buffer, &bufsize);
+      int destination = rank - distance;
+      printf("Rank %d is sending message to rank %d\n", rank, destination);
+      MPI_Send(buffer, bufsize, MPI_INT, destination, 0, MPI_COMM_WORLD);
+      free(buffer);
+      break;
+    } else {
+      int source = rank + distance;
+      if (source < size) {
+        MPI_Status status;
+        MPI_Probe(source, 0, MPI_COMM_WORLD, &status);
+        int message_size;
+        MPI_Get_count(&status, MPI_INT, &message_size);
+        int *buffer = calloc(message_size, sizeof(int));
+        if (buffer == NULL) {
+          fprintf(stderr, "Failed to allocate memory\n");
+          MPI_Abort(MPI_COMM_WORLD, -1);
+        }
+        MPI_Recv(buffer, message_size, MPI_INT, status.MPI_SOURCE, status.MPI_TAG,
+                MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        printf("Rank %d received message from rank %d\n", rank,
+              status.MPI_SOURCE);
+        ITArray sent;
+        int sent_local_min_support;
+        deserialize_itarray(buffer, &sent, &sent_local_min_support);
+        free(buffer);
+
+        local_min_support = local_min_support + sent_local_min_support;
+        merge_closed_itemsets_into(&sent, &local_C, true);
+        itarray_remove_low_suport_pairs(&local_C, local_min_support);
+        itarray_remove_subsumed_pairs(&local_C);
+        itarray_free(&sent);
       }
-      MPI_Recv(buffers[i], message_size, MPI_INT, status.MPI_SOURCE,
-               status.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      printf("Rank %d received message from rank %d\n", rank,
-             status.MPI_SOURCE);
-      ITArray sent;
-      deserialize_itarray(buffers[i], &sent);
-      merge_closed_itemsets_into(&sent, &local_C, true);
-      itarray_free(&sent);
-      free(buffers[i]);
     }
-    itarray_remove_low_suport_pairs(&local_C, local_min_support * (1 << num_passes));
-    itarray_remove_subsumed_pairs(&local_C);
-  } else {
-    printf("Rank %d will not receive a message\n", rank);
+    num_iteration++;
   }
 
-  if (rank != 0) {
-    int *buffer, bufsize;
-    serialize_itarray(&local_C, &buffer, &bufsize);
-    int target_rank = (rank - 1) / 2;
-    printf("Rank %d is sending message to rank %d\n", rank, target_rank);
-    MPI_Send(buffer, bufsize, MPI_INT, target_rank, 0, MPI_COMM_WORLD);
-    free(buffer);
-  } else {
-    itarray_remove_low_suport_pairs(&local_C, min_support);
-    itarray_remove_subsumed_pairs(&local_C);
+  if (rank == 0) {
     print_closed_itemsets(&local_C, characters);
   }
 

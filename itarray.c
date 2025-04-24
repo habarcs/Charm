@@ -187,8 +187,8 @@ void merge_closed_itemsets_into(ITArray *from, ITArray *to, bool add_back) {
   }
 }
 
-void serialize_itarray(const ITArray *data, int **buffer, int *bufsize) {
-  int total_size = 1 + (data->size * 2);
+void serialize_itarray(const ITArray *data, int min_support, int **buffer, int *bufsize) {
+  int total_size = 1 + 1 + (data->size * 2);
   for (int i = 0; i < data->size; i++) {
     total_size += data->itpairs[i].itemset.size;
     total_size += data->itpairs[i].tidset.size;
@@ -198,6 +198,7 @@ void serialize_itarray(const ITArray *data, int **buffer, int *bufsize) {
   *bufsize = total_size;
 
   int index = 0;
+  (*buffer)[index++] = min_support;
   (*buffer)[index++] = data->size;
 
   for (int i = 0; i < data->size; i++) {
@@ -215,8 +216,9 @@ void serialize_itarray(const ITArray *data, int **buffer, int *bufsize) {
   }
 }
 
-void deserialize_itarray(int *buffer, ITArray *data) {
+void deserialize_itarray(int *buffer, ITArray *data, int *min_support) {
   int index = 0;
+  *min_support = buffer[index++];
   int num_itpairs = buffer[index++];
 
   itarray_init(data, num_itpairs);

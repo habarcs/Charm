@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#PBS -l select=1:ncpus=1:mem=2gb
+#PBS -l select=1:ncpus=1:mem=8gb
 
 # define the queue
 #PBS -q short_cpuQ
@@ -18,6 +18,6 @@ export DATA_PATH=/home/andrea.leoni-1/Charm/data
 export DATA_FILE=synthetic_retail.dat
 export DATA_CHARACTERS=0
 export MIN_SUPPORT=10000
-export MAX_TRANSACTIONS=100000
+export MAX_TRANSACTIONS=300000
 
 mpiexec -n 1 $(pwd)/Charm/out/charm_parallel

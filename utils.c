@@ -42,9 +42,11 @@ Set *read_sets_from_file_start_end(const char *filename, int *num_transactions,
                                    int rank, int size, int *partition_size,
                                    int *local_size, bool characters, int max_transactions) {
   *num_transactions = count_lines_in_file(filename);
-  printf("Number of transactions in the dataset: %d\n", *num_transactions);
+  if (rank == 0) {
+    printf("Number of transactions in the dataset: %d\n", *num_transactions);
+  }
   if (*num_transactions > max_transactions) {
-    printf("Max number of transactions exceeded. Considering only first %d transactions\n", max_transactions);
+    // printf("Max number of transactions exceeded. Considering only first %d transactions\n", max_transactions);
     *num_transactions = max_transactions;
   }
 
@@ -110,15 +112,15 @@ Set *read_sets_from_file_start_end(const char *filename, int *num_transactions,
 Set *read_sets_from_file(const char *filename, int *num_transactions,
                          bool characters, int max_transactions) {
   *num_transactions = count_lines_in_file(filename);
-  printf("Number of transactions in the dataset: %d\n", *num_transactions);
+  // printf("Number of transactions in the dataset: %d\n", *num_transactions);
   if (*num_transactions > max_transactions) {
-    printf("Max number of transactions exceeded\n");
+    // printf("Max number of transactions exceeded\n");
     *num_transactions = max_transactions;
   }
 
   Set *transactions = malloc(*num_transactions * sizeof(Set));
   if (!transactions) {
-    perror("Failed to allocate memory for transactions");
+    // perror("Failed to allocate memory for transactions");
     exit(EXIT_FAILURE);
   }
 
