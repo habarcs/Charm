@@ -18,6 +18,6 @@ export DATA_PATH=/home/andrea.leoni-1/Charm/data
 export DATA_FILE=synthetic_retail.dat
 export DATA_CHARACTERS=0
 export MIN_SUPPORT=10000
-export MAX_TRANSACTIONS=300000
+export MAX_TRANSACTIONS=200000
 
 mpiexec -n 32 $(pwd)/Charm/out/charm_parallel
