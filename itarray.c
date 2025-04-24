@@ -140,13 +140,18 @@ void print_closed_itemsets(ITArray *C, bool character) {
 void add_back_all_frequent_itemsets(ITArray *C) {
   ITArray temp;
   itarray_init(&temp, 1);
+
+  SetHash existing;
+  sethash_init(&existing);
+  for (int i = 0; i < C->size; i++) {
+    sethash_add(&existing, &C->itpairs[i].itemset);
+  }
+
   for (int i = 0; i < C->size; i++) {
     Set *itemset = &C->itpairs[i].itemset;
     Set *tidset = &C->itpairs[i].tidset;
     int num_subsets = 1 << itemset->size;
-    // to get the subsets we use bit manipulation
-    // we skip the first subset, because it is the empty set
-    // we skip the last subset, because it is the full set
+
     for (int j = 1; j < num_subsets - 1; j++) {
       Set subset;
       set_init(&subset, 1);
@@ -155,12 +160,24 @@ void add_back_all_frequent_itemsets(ITArray *C) {
           set_add(&subset, itemset->set[k]);
         }
       }
-      itarray_add(&temp, &subset, tidset);
+
+      if (!sethash_contains(&existing, &subset)) {
+        itarray_add(&temp, &subset, tidset);
+        Set *copy = malloc(sizeof(Set));
+        set_init(copy, subset.size);
+        for (int m = 0; m < subset.size; m++) {
+          set_add(copy, subset.set[m]);
+        }
+        sethash_add(&existing, copy);
+      }
+
       set_free(&subset);
     }
   }
+
   merge_closed_itemsets_into(&temp, C, false);
   itarray_free(&temp);
+  sethash_free(&existing);
 }
 
 void merge_closed_itemsets_into(ITArray *from, ITArray *to, bool add_back) {
@@ -176,7 +193,7 @@ void merge_closed_itemsets_into(ITArray *from, ITArray *to, bool add_back) {
       Set *to_itemset = &to->itpairs[j].itemset;
       Set *to_tidset = &to->itpairs[j].tidset;
       if (sets_equal(from_itemset, to_itemset)) {
-        set_add_all(from_tidset, to_tidset);
+        set_merge_union_sorted(from_tidset, to_tidset);
         already_in = true;
         break;
       }

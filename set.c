@@ -160,3 +160,78 @@ int compare_sets(const Set *a, const Set *b) {
   }
   return 0;
 }
+
+void set_merge_union_sorted(const Set *from, Set *target) {
+  int new_cap = target->size + from->size;
+  int *merged = malloc(new_cap * sizeof(int));
+  if (!merged) {
+    fprintf(stderr, "Memory allocation failed in set_merge_union_sorted\n");
+    abort();
+  }
+
+  int i = 0, j = 0, k = 0;
+
+  while (i < target->size && j < from->size) {
+    if (target->set[i] < from->set[j]) {
+      merged[k++] = target->set[i++];
+    } else if (target->set[i] > from->set[j]) {
+      merged[k++] = from->set[j++];
+    } else {
+      merged[k++] = target->set[i];
+      i++;
+      j++;
+    }
+  }
+
+  while (i < target->size) merged[k++] = target->set[i++];
+  while (j < from->size) merged[k++] = from->set[j++];
+
+  free(target->set);
+  target->set = merged;
+  target->size = k;
+  target->cap = new_cap;
+}
+
+unsigned int set_hash(const Set *s) {
+  unsigned int hash = 5381;
+  for (int i = 0; i < s->size; i++) {
+    hash = ((hash << 5) + hash) + s->set[i];
+  }
+  return hash;
+}
+
+void sethash_init(SetHash *sh) {
+  sh->buckets = calloc(HASH_BUCKETS, sizeof(HashNode *));
+}
+
+void sethash_add(SetHash *sh, Set *s) {
+  unsigned int hash = set_hash(s) % HASH_BUCKETS;
+  HashNode *node = malloc(sizeof(HashNode));
+  node->itemset = s;
+  node->next = sh->buckets[hash];
+  sh->buckets[hash] = node;
+}
+
+bool sethash_contains(SetHash *sh, Set *s) {
+  unsigned int hash = set_hash(s) % HASH_BUCKETS;
+  HashNode *node = sh->buckets[hash];
+  while (node) {
+    if (sets_equal(node->itemset, s)) {
+      return true;
+    }
+    node = node->next;
+  }
+  return false;
+}
+
+void sethash_free(SetHash *sh) {
+  for (int i = 0; i < HASH_BUCKETS; i++) {
+    HashNode *node = sh->buckets[i];
+    while (node) {
+      HashNode *next = node->next;
+      free(node);
+      node = next;
+    }
+  }
+  free(sh->buckets);
+}
