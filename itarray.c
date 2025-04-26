@@ -3,6 +3,7 @@
 #include "utils.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 void itarray_init(ITArray *array, int initial_cap) {
   if (initial_cap <= 0) {
@@ -118,23 +119,39 @@ void itarray_replace_with(ITArray *P, const Set *it, const Set *with) {
 }
 
 // we can convert back to char the items
-void print_closed_itemsets(ITArray *C, bool character) {
-  printf("%d Closed itemsets found\n", C->size);
-  // for (int i = 0; i < C->size; i++) {
-  //   printf("itemset: ");
-  //   for (int j = 0; j < C->itpairs[i].itemset.size; j++) {
-  //     if (character) {
-  //       printf("%c ", index_to_char(C->itpairs[i].itemset.set[j]));
-  //     } else {
-  //       printf("%d ", C->itpairs[i].itemset.set[j]);
-  //     }
-  //   }
-  //   printf("\t| tids: ");
-  //   for (int j = 0; j < C->itpairs[i].tidset.size; j++) {
-  //     printf("%d ", C->itpairs[i].tidset.set[j]);
-  //   }
-  //   printf("\n");
-  // }
+void print_closed_itemsets(ITArray *C, bool character, const char *out_file) {
+  if (out_file == NULL) {
+    return;
+  }
+  FILE *out = stdout;
+  bool should_close = false;
+  if (strcmp(out_file, "stdout") != 0) {
+    out = fopen(out_file, "w");
+    if (out == NULL) {
+      fprintf(stderr, "Opening out file failed, writing to stdout instead\n");
+    }
+    should_close = true;
+  }
+
+  fprintf(out, "%d Closed itemsets found\n", C->size);
+  for (int i = 0; i < C->size; i++) {
+    fprintf(out, "itemset: ");
+    for (int j = 0; j < C->itpairs[i].itemset.size; j++) {
+      if (character) {
+        fprintf(out, "%c ", index_to_char(C->itpairs[i].itemset.set[j]));
+      } else {
+        fprintf(out, "%d ", C->itpairs[i].itemset.set[j]);
+      }
+    }
+    fprintf(out, "\t| tids: ");
+    for (int j = 0; j < C->itpairs[i].tidset.size; j++) {
+      fprintf(out, "%d ", C->itpairs[i].tidset.set[j]);
+    }
+    fprintf(out, "\n");
+  }
+  if (should_close) {
+    fclose(out);
+  }
 }
 
 void add_back_all_frequent_itemsets(ITArray *C) {
@@ -187,7 +204,8 @@ void merge_closed_itemsets_into(ITArray *from, ITArray *to, bool add_back) {
   }
 }
 
-void serialize_itarray(const ITArray *data, int min_support, int **buffer, int *bufsize) {
+void serialize_itarray(const ITArray *data, int min_support, int **buffer,
+                       int *bufsize) {
   int total_size = 1 + 1 + (data->size * 2);
   for (int i = 0; i < data->size; i++) {
     total_size += data->itpairs[i].itemset.size;

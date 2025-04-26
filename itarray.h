@@ -96,11 +96,11 @@ void itarray_remove(ITArray *P, int pos);
 void itarray_replace_with(ITArray *P, const Set *it, const Set *with);
 
 /*
-  prints the ITPairs of C to stdout
+  prints the ITPairs of C to out_file
   if character is true they are printed as if the ints are characters
   C has to be a valid pointer to ITArray
 */
-void print_closed_itemsets(ITArray *C, bool character);
+void print_closed_itemsets(ITArray *C, bool character, const char* out_file);
 
 /*
   this functions merges from ITArray into to
