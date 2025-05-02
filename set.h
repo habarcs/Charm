@@ -1,6 +1,8 @@
 #pragma once
 #include <stdbool.h>
 
+#define HASH_BUCKETS 10007
+
 /*
   A Set type implements and ordered dynamic array,
   where each element is unique
@@ -13,6 +15,15 @@ typedef struct {
   int size;
   int cap;
 } Set;
+
+typedef struct HashNode {
+  Set *itemset;
+  struct HashNode *next;
+} HashNode;
+
+typedef struct {
+  HashNode **buckets;
+} SetHash;
 
 /*
   This function initializes a sets dynamic memory
@@ -82,3 +93,15 @@ bool sets_equal(const Set *a, const Set *b);
   return -1 if a is before b, 1 if after, 0 if they are equal
 */
 int compare_sets(const Set *a, const Set *b);
+
+void set_merge_union_sorted(const Set *from, Set *target);
+
+unsigned int set_hash(const Set *s);
+
+void sethash_init(SetHash *sh);
+
+void sethash_add(SetHash *sh, Set *s);
+
+bool sethash_contains(SetHash *sh, Set *s);
+
+void sethash_free(SetHash *sh);
