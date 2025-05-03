@@ -187,6 +187,8 @@ void add_back_all_frequent_itemsets(ITArray *C) {
           set_add(copy, subset.set[m]);
         }
         sethash_add(&existing, copy);
+      } else {
+        itarray_add(&temp, &subset, tidset);
       }
 
       set_free(&subset);
