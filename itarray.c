@@ -129,6 +129,7 @@ void print_closed_itemsets(ITArray *C, bool character, const char *out_file) {
     out = fopen(out_file, "w");
     if (out == NULL) {
       fprintf(stderr, "Opening out file failed, writing to stdout instead\n");
+      out = stdout;
     }
     should_close = true;
   }
