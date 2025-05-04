@@ -18,7 +18,8 @@ typedef struct {
 
 /*
   A HashNode is used for more efficient member checking for arrays of sets
-  a hash node represent a bucket, where itemset is a pointer to the set and next is a pointer to the next set in the bucket
+  a hash node represent a bucket, where itemset is a pointer to the set and next
+  is a pointer to the next set in the bucket
 */
 typedef struct HashNode {
   Set *itemset;

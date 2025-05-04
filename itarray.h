@@ -100,7 +100,7 @@ void itarray_replace_with(ITArray *P, const Set *it, const Set *with);
   if character is true they are printed as if the ints are characters
   C has to be a valid pointer to ITArray
 */
-void print_closed_itemsets(ITArray *C, bool character, const char* out_file);
+void print_closed_itemsets(ITArray *C, bool character, const char *out_file);
 
 /*
   this functions merges from ITArray into to
@@ -115,7 +115,8 @@ void merge_closed_itemsets_into(ITArray *from, ITArray *to, bool add_back);
   ([number of pairs, number of items in first itemset, items, number of tids in
   first tidset, tids, ...]) bufsize is the size of the output array
 */
-void serialize_itarray(const ITArray *data, int min_support,int **buffer, int *bufsize);
+void serialize_itarray(const ITArray *data, int min_support, int **buffer,
+                       int *bufsize);
 
 /*
   deserialize a buffer of integers to an ITArray.

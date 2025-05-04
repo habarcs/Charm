@@ -183,8 +183,10 @@ void set_merge_union_sorted(const Set *from, Set *target) {
     }
   }
 
-  while (i < target->size) merged[k++] = target->set[i++];
-  while (j < from->size) merged[k++] = from->set[j++];
+  while (i < target->size)
+    merged[k++] = target->set[i++];
+  while (j < from->size)
+    merged[k++] = from->set[j++];
 
   free(target->set);
   target->set = merged;

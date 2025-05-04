@@ -99,10 +99,10 @@ int main(void) {
           fprintf(stderr, "Failed to allocate memory\n");
           MPI_Abort(MPI_COMM_WORLD, -1);
         }
-        MPI_Recv(buffer, message_size, MPI_INT, status.MPI_SOURCE, status.MPI_TAG,
-                MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(buffer, message_size, MPI_INT, status.MPI_SOURCE,
+                 status.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         printf("Rank %d received message from rank %d\n", rank,
-              status.MPI_SOURCE);
+               status.MPI_SOURCE);
         ITArray sent;
         int sent_local_min_support;
         deserialize_itarray(buffer, &sent, &sent_local_min_support);
@@ -120,7 +120,8 @@ int main(void) {
   }
 
   if (rank == 0) {
-    itarray_remove_low_suport_pairs(&local_C, local_min_support+remainder_min_support);
+    itarray_remove_low_suport_pairs(&local_C,
+                                    local_min_support + remainder_min_support);
     print_closed_itemsets(&local_C, characters, env_out_path);
   }
 
