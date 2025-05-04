@@ -212,7 +212,7 @@ void sethash_add(SetHash *sh, Set *s) {
   sh->buckets[hash] = node;
 }
 
-bool sethash_contains(SetHash *sh, Set *s) {
+bool sethash_contains(const SetHash *sh, const Set *s) {
   unsigned int hash = set_hash(s) % HASH_BUCKETS;
   HashNode *node = sh->buckets[hash];
   while (node) {

@@ -16,11 +16,18 @@ typedef struct {
   int cap;
 } Set;
 
+/*
+  A HashNode is used for more efficient member checking for arrays of sets
+  a hash node represent a bucket, where itemset is a pointer to the set and next is a pointer to the next set in the bucket
+*/
 typedef struct HashNode {
   Set *itemset;
   struct HashNode *next;
 } HashNode;
 
+/*
+  SetHash represents the whole datastructure containing all the buckets
+*/
 typedef struct {
   HashNode **buckets;
 } SetHash;
@@ -96,12 +103,28 @@ int compare_sets(const Set *a, const Set *b);
 
 void set_merge_union_sorted(const Set *from, Set *target);
 
+/*
+  calculates the hash value for a given set
+  s has to be a valid point to Set
+*/
 unsigned int set_hash(const Set *s);
 
+/*
+  initializes the SetHash buckets at sh
+*/
 void sethash_init(SetHash *sh);
 
+/*
+  adds Set s to the SetHash sh
+*/
 void sethash_add(SetHash *sh, Set *s);
 
-bool sethash_contains(SetHash *sh, Set *s);
+/*
+  checks if Set s is present in the sethash
+*/
+bool sethash_contains(const SetHash *sh, const Set *s);
 
+/*
+  frees memory allocated for the SetHash
+*/
 void sethash_free(SetHash *sh);
