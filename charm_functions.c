@@ -70,7 +70,7 @@ void charm_extend(ITArray *P, ITArray *C, int min_support) {
 
 void enumerate_frequent(const ITPair *P, const ITArray *P_children,
                         int min_support, ITArray *C, int depth) {
-#pragma omp parallel for schedule(guided)
+  #pragma omp parallel for schedule(guided)
   for (int i = 0; i < P_children->size; i++) {
     ITPair Pi = {{0}, {0}};
     set_union(&P->itemset, &P_children->itpairs[i].itemset, &Pi.itemset);
@@ -99,7 +99,7 @@ void enumerate_frequent(const ITPair *P, const ITArray *P_children,
     // dfs
     enumerate_frequent(&Pi, &Pi_children, min_support, C, depth + 1);
 
-#pragma omp critical
+    #pragma omp critical
     if (!itarray_is_itpair_subsumed(C, &Pi)) {
       itarray_add(C, &Pi.itemset, &Pi.tidset);
     }
